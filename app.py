@@ -6,7 +6,7 @@ minimal_beige_css = """
 <style>
 /* الخلفية الرئيسية للموقع باللون البيج الفاتح الناعم */
 [data-testid="stAppViewContainer"] {
-    background-color: #f7f4eb !important; /* لون بيج ناعم جداً */
+    background-color: #f7f4eb !important;
 }
 
 /* القائمة الجانبية بلون أبيض ناصع ونظيف */
@@ -47,21 +47,75 @@ st.markdown(minimal_beige_css, unsafe_allow_html=True)
 if 'cart_items' not in st.session_state:
     st.session_state.cart_items = []
 
-# المنتجات الافتراضية للمتجر
+# قاعدة البيانات المحدثة: 3 صور ومنتجات حقيقية لكل فئة
 if 'custom_products' not in st.session_state:
     st.session_state.custom_products = [
+        # --- قسم الفخار ---
         {
             "name": "كوب فخار رمادي ناعم", 
             "price": 25, 
-            "cat": "فخار", 
-            "desc": "طين طبيعي مشكل يدوياً.",
+            "cat": "🏺 فخار", 
+            "desc": "طين طبيعي مصقول ومُشكل يدوياً بعناية.",
             "image": "https://unsplash.com"
         },
         {
+            "name": "وعاء طيني للنباتات", 
+            "price": 35, 
+            "cat": "🏺 فخار", 
+            "desc": "إناء فخاري دافئ مثالي للنباتات المنزلية.",
+            "image": "https://unsplash.com"
+        },
+        {
+            "name": "إبريق سيراميك تقليدي", 
+            "price": 50, 
+            "cat": "🏺 فخار", 
+            "desc": "إبريق فخاري عتيق لتقديم المشروبات الساخنة.",
+            "image": "https://unsplash.com"
+        },
+        
+        # --- قسم المنسوجات ---
+        {
             "name": "حقيبة كتف قطنية منسوجة", 
             "price": 45, 
-            "cat": "منسوجات", 
-            "desc": "خيوط قطن طبيعية 100%.",
+            "cat": "🧵 منسوجات", 
+            "desc": "خيوط قطن طبيعية ومغزولة 100%.",
+            "image": "https://unsplash.com"
+        },
+        {
+            "name": "وشاح بوهيمي دافئ", 
+            "price": 30, 
+            "cat": "🧵 منسوجات", 
+            "desc": "نسيج صوف ناعم بنقوش بوهيمية عصرية.",
+            "image": "https://unsplash.com"
+        },
+        {
+            "name": "وسادة منزلية مطرزة", 
+            "price": 40, 
+            "cat": "🧵 منسوجات", 
+            "desc": "غطاء وسادة من الكتان بتطريز يدوي رائع.",
+            "image": "https://unsplash.com"
+        },
+        
+        # --- قسم الإكسسوارات ---
+        {
+            "name": "سوار من الفضة المطفي", 
+            "price": 30, 
+            "cat": "💍 إكسسوارات", 
+            "desc": "تصميم هندسي بسيط ومصنوع من الفضة النقية.",
+            "image": "https://unsplash.com"
+        },
+        {
+            "name": "خاتم فضة كلاسيكي", 
+            "price": 28, 
+            "cat": "💍 إكسسوارات", 
+            "desc": "خاتم ناعم مُصمم بأسلوب المينيمال الجذاب.",
+            "image": "https://unsplash.com"
+        },
+        {
+            "name": "عقد من الأحجار الطبيعية", 
+            "price": 55, 
+            "cat": "💍 إكسسوارات", 
+            "desc": "قلادة فريدة مصنوعة من خرز الأحجار الخام.",
             "image": "https://unsplash.com"
         }
     ]
@@ -70,8 +124,8 @@ if 'custom_products' not in st.session_state:
 st.sidebar.title("M i n i m a l  S h o p")
 st.sidebar.write("---")
 
-# تصفية الفئات
-category = st.sidebar.selectbox("الفئة / Category", ["الكل", "فخار", "منسوجات", "إكسسوارات"])
+# تصفية الفئات بعد إضافة الأشكال التوضيحية
+category = st.sidebar.selectbox("الفئة / Category", ["✨ الكل", "🏺 فخار", "🧵 منسوجات", "💍 إكسسوارات"])
 
 st.sidebar.write("---")
 st.sidebar.subheader("عربة التسوق 🛒")
@@ -87,7 +141,7 @@ else:
     
     st.sidebar.write(f"### الإجمالي: {total_price}$")
     
-    # رقم الهاتف الخاص بك (بدون أصفار بالبداية أو علامة +)
+    # رقم الهاتف الافتراضي لتلقي الطلبات
     my_whatsapp_number = "201234567890" 
     
     order_text = "مرحباً، أود طلب المنتجات التالية من المتجر:\n"
@@ -104,12 +158,12 @@ else:
         st.session_state.cart_items = []
         st.rerun()
 
-# ميزة إضافة المنتجات يدويًا للمدير داخل القائمة الجانبية
+# لوحة المدير لإضافة فئات جديدة بنفس الطريقة
 st.sidebar.write("---")
 with st.sidebar.expander("➕ إضافة منتج جديد (لوحة المدير)"):
     new_name = st.text_input("اسم المنتج:")
     new_price = st.number_input("السعر ($):", min_value=1, value=10)
-    new_cat = st.selectbox("الفئة:", ["فخار", "منسوجات", "إكسسوارات"])
+    new_cat = st.selectbox("الفئة:", ["🏺 فخار", "🧵 منسوجات", "💍 إكسسوارات"])
     new_desc = st.text_input("وصف قصير:")
     new_img = st.text_input("رابط الصورة المباشر:", value="https://unsplash.com")
     
@@ -131,10 +185,10 @@ st.title("The Handmade Studio .")
 st.caption("قطع فريدة صُنعت يدوياً بكل حب وبساطة وبألوان طبيعية دافئة.")
 st.write("---")
 
-# تصفية المعروضات بناءً على الفئة المختارة
-filtered_products = [p for p in st.session_state.custom_products if category == "الكل" or p["cat"] == category]
+# تصفية المعروضات بناءً على الفئة المختارة مع مراعاة الأشكال المضافة
+filtered_products = [p for p in st.session_state.custom_products if category == "✨ الكل" or p["cat"] == category]
 
-# عرض المنتجات في عمودين بنمط Minimal البيج والأبيض
+# عرض المنتجات في عمودين بنمط Minimal
 if len(filtered_products) == 0:
     st.info("لا توجد منتجات متوفرة في هذه الفئة حالياً.")
 else:
@@ -161,4 +215,3 @@ else:
 
 st.write("---")
 st.caption("© 2026 Minimal Handmade Store. All rights reserved.")
-
