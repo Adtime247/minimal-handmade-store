@@ -105,18 +105,18 @@ if len(st.session_state.cart_items) == 0:
     st.sidebar.caption("العربة فارغة حالياً.")
 else:
     for item in st.session_state.cart_items:
-        st.sidebar.write(f"- {item['name']} ({item['price']}$)")
+        st.sidebar.write(f"- {item['name']} ({item['price']}£)")
         total_price += item['price']
     
-    st.sidebar.write(f"### الإجمالي: {total_price}$")
+    st.sidebar.write(f"### الإجمالي: {total_price}£")
     
     # ضع رقمك هنا مباشرة (رمز الدولة بدون أصفار أو علامة +)
     my_whatsapp_number = "201234567890" 
     
     order_text = "مرحباً، أود طلب المنتجات التالية من المتجر:\n"
     for item in st.session_state.cart_items:
-        order_text += f"- {item['name']} ({item['price']}$)\n"
-    order_text += f"\nإجمالي الحساب: {total_price}$"
+        order_text += f"- {item['name']} ({item['price']}£)\n"
+    order_text += f"\nإجمالي الحساب: {total_price}£"
     
     encoded_text = urllib.parse.quote(order_text)
     whatsapp_url = f"https://wa.me{my_whatsapp_number}?text={encoded_text}"
@@ -132,7 +132,7 @@ else:
 st.sidebar.write("---")
 with st.sidebar.expander("➕ إضافة منتج جديد (لوحة المدير)"):
     new_name = st.text_input("اسم المنتج الجديد:")
-    new_price = st.number_input("السعر بالدولار ($):", min_value=1, value=15)
+    new_price = st.number_input("السعر بالجنيه المصري (£):", min_value=1, value=15)
     new_cat = st.selectbox("اختر الفئة التابع لها:", ["🏺 فخار", "🧵 منسوجات", "💍 إكسسوارات"])
     new_desc = st.text_input("اكتب وصفاً مختصراً:")
     
@@ -183,7 +183,7 @@ else:
             <div class="product-card">
                 <h3>{prod['name']}</h3>
                 <p>{prod['desc']}</p>
-                <div class="product-price">{prod['price']}$</div>
+                <div class="product-price">{prod['price']}£</div>
             </div>
             """, unsafe_allow_html=True)
             
