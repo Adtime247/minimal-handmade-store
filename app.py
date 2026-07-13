@@ -105,7 +105,7 @@ if st.session_state.selected_product is not None:
         st.session_state.selected_product = None
         st.rerun()
 
-category = st.sidebar.selectbox("Filter Categories", ["✨ All", "🏺 Pottery", "🧵 Textiles", "💍 Accessories"])
+category = st.sidebar.selectbox("Filter Categories", ["✨ All", "👑 Headbands", "🎀 Hair Bows", "Hair Bands & Pins🖇"])
 
 st.sidebar.write("---")
 st.sidebar.subheader("Shopping Cart 🛒")
