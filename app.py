@@ -2,46 +2,55 @@ import streamlit as st
 import urllib.parse
 from PIL import Image
 
-# 1. واجهة تصميم عصرية وفائقة البساطة (Modern Minimal UI)
-modern_style_css = """
+# 1. واجهة تصميم فائقة العصرية ومخصصة للغة العربية والألوان الدافئة
+aesthetic_store_css = """
 <style>
-/* خلفية الموقع حديثة وخفيفة جداً */
+/* خلفية الموقع ناعمة ومريحة للعين */
 [data-testid="stAppViewContainer"] {
-    background-color: #fcfbfa !important;
+    background-color: #faf7f2 !important;
 }
 
-/* قائمة جانبية بلون أبيض صافي وفاخر */
+/* قائمة جانبية بيضاء نظيفة ومحددة بخط ناعم */
 [data-testid="stSidebar"] {
     background-color: #ffffff !important;
-    border-right: 1px solid #f2eee9;
+    border-right: 1px solid #efeae4;
 }
 
-/* خطوط عصرية داكنة وراقية */
-h1, h2, h3, p, label {
-    color: #3d3535 !important;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+/* خطوط متناسقة وألوان نصوص خشبية داكنة راقية */
+h1, h2, h3, p, label, span {
+    color: #4a3f35 !important;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    text-align: right;
 }
 
-/* بطاقات المنتجات بنمط عصري عائم وهادئ */
+/* بطاقات عرض المنتجات بتصميم انسيابي مذهل وبسيط في المعرض */
 .product-card {
     background-color: #ffffff;
     padding: 20px;
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(61,53,53,0.03);
-    margin-bottom: 20px;
-    border: 1px solid #f7f5f2;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(74,63,53,0.02);
+    margin-bottom: 25px;
+    border: 1px solid #f4eee6;
     text-align: center;
-    transition: transform 0.2s ease;
+}
+
+.product-title {
+    font-size: 1.3em;
+    font-weight: bold;
+    color: #4a3f35;
+    margin-top: 10px;
+    text-align: center;
 }
 
 .product-price {
-    color: #9c8470;
-    font-weight: 600;
+    color: #b58d63;
+    font-weight: 700;
+    font-size: 1.25em;
     margin-top: 10px;
-    font-size: 1.15em;
+    text-align: center;
 }
 
-/* زر إتمام الشراء عبر الواتساب */
+/* تنسيق زر الواتساب الأخضر الخاص بالشراء */
 .whatsapp-btn {
     display: block;
     width: 100%;
@@ -52,49 +61,63 @@ h1, h2, h3, p, label {
     text-decoration: none;
     font-weight: bold;
     border-radius: 8px;
-    border: none;
-    box-shadow: 0 2px 6px rgba(18,140,126,0.2);
+    box-shadow: 0 4px 10px rgba(18,140,126,0.15);
 }
 </style>
 """
-st.markdown(modern_style_css, unsafe_allow_html=True)
+st.markdown(aesthetic_store_css, unsafe_allow_html=True)
 
-# 2. تهيئة مخزن الذاكرة الذكي للمتجر والمنتجات
+# 2. إدارة ذاكرة المنتجات وسلة التسوق والمنتج المختار الحالي
 if 'cart_items' not in st.session_state:
     st.session_state.cart_items = []
 
+if 'selected_product' not in st.session_state:
+    st.session_state.selected_product = None  # لمعرفة هل العميل داخل صفحة منتج أم في المعرض الرئيسي
+
 if 'custom_products' not in st.session_state:
-    # منتجات افتراضية ذكية ومستقرة لبدء المتجر
+    # إعداد المنتجات الافتراضية مع إضافة ميزة الألوان المتعددة لكل منتج
     st.session_state.custom_products = [
         {
-            "name": "كوب فخار رمادي ناعم", 
-            "price": 25, 
-            "cat": "🏺 فخار", 
-            "desc": "طين طبيعي مصقول ومُشكل يدوياً بعناية.",
-            "image": "https://picsum.photos"
-        },
-        {
-            "name": "حقيبة كتف قطنية منسوجة", 
-            "price": 45, 
-            "cat": "🧵 منسوجات", 
-            "desc": "خيوط قطن طبيعية ومغزولة 100%.",
-            "image": "https://picsum.photos"
-        },
-        {
-            "name": "سوار من الفضة المطفي", 
-            "price": 30, 
+            "id": 0,
+            "name": "مشبك شعر أنيق 🏷️", 
+            "price": 20, 
             "cat": "💍 إكسسوارات", 
-            "desc": "تصميم هندسي بسيط ومصنوع من الفضة النقية.",
+            "desc": "أضيفي لمسة من الأناقة لإطلالتك مع مشبك الشعر العصري بتصميم رخامي راقٍ. يتميز بثبات قوي، وخفة وزن، وراحة كاملة في الاستخدام اليومي أو المناسبات.",
+            "colors": ["رخامي بيج", "أخضر زيتوني", "أبيض صدف", "وردي ناعم"],
+            "image": "https://picsum.photos"
+        },
+        {
+            "id": 1,
+            "name": "كوب فخار مصقول 🏺", 
+            "price": 150, 
+            "cat": "🏺 فخار", 
+            "desc": "طين طبيعي مصقول ومُشكل يدوياً بعناية فائقة. رفيق مثالي لمشروباتك الساخنة اليومية ويتحمل الحرارة العالية.",
+            "colors": ["بني ترابي", "رمادي مطفي", "أسود ملكي"],
+            "image": "https://picsum.photos"
+        },
+        {
+            "name": "حقيبة كتف قطنية 🧵", 
+            "id": 2,
+            "price": 350, 
+            "cat": "🧵 منسوجات", 
+            "desc": "حقيبة يدوية منسوجة من خيوط القطن الطبيعي 100% بتصميم بوهيمي واسع وعصري يناسب جميع الطلعات.",
+            "colors": ["أوف وايت", "خردلي دافئ", "رمادي فاتح"],
             "image": "https://picsum.photos"
         }
     ]
 
-# 3. بناء القائمة الجانبية (الفلترة، عربة التسوق، لوحة التحكم)
-st.sidebar.title("M i n i m a l  S h o p")
-st.sidebar.caption("البرمجة تلتقي بالفن اليدوي")
+# 3. القائمة الجانبية (عربة التسوق والتحكم)
+st.sidebar.title("متجر الأناقة البسيطة")
+st.sidebar.caption("قطع فريدة صُنعت بكل حب وبساطة")
 st.sidebar.write("---")
 
-category = st.sidebar.selectbox("الفئة / Category", ["✨ الكل", "🏺 فخار", "🧵 منسوجات", "💍 إكسسوارات"])
+# زر العودة للمعرض الرئيسي يظهر دائماً في العربة إذا كان المستخدم يتصفح منتجاً
+if st.session_state.selected_product is not None:
+    if st.sidebar.button("⬅️ العودة للمعرض الرئيسي", use_container_width=True):
+        st.session_state.selected_product = None
+        st.rerun()
+
+category = st.sidebar.selectbox("تصفح الفئات", ["✨ الكل", "🏺 فخار", "🧵 منسوجات", "💍 إكسسوارات"])
 
 st.sidebar.write("---")
 st.sidebar.subheader("عربة التسوق 🛒")
@@ -105,18 +128,18 @@ if len(st.session_state.cart_items) == 0:
     st.sidebar.caption("العربة فارغة حالياً.")
 else:
     for item in st.session_state.cart_items:
-        st.sidebar.write(f"- {item['name']} ({item['price']}£)")
+        st.sidebar.write(f"• {item['name']} ({item['color']}) - {item['price']} ج.م")
         total_price += item['price']
     
-    st.sidebar.write(f"### الإجمالي: {total_price}£")
+    st.sidebar.write(f"### الإجمالي: {total_price} ج.م")
     
-    # ضع رقمك هنا مباشرة (رمز الدولة بدون أصفار أو علامة +)
+    # ضع رقم الواتساب الخاص بك هنا (مفتاح الدولة بدون أصفار بالبداية أو علامة +)
     my_whatsapp_number = "201234567890" 
     
     order_text = "مرحباً، أود طلب المنتجات التالية من المتجر:\n"
     for item in st.session_state.cart_items:
-        order_text += f"- {item['name']} ({item['price']}£)\n"
-    order_text += f"\nإجمالي الحساب: {total_price}£"
+        order_text += f"- {item['name']} (اللون: {item['color']}) بسعر {item['price']} ج.م\n"
+    order_text += f"\nإجمالي الحساب بالكامل: {total_price} ج.م"
     
     encoded_text = urllib.parse.quote(order_text)
     whatsapp_url = f"https://wa.me{my_whatsapp_number}?text={encoded_text}"
@@ -128,70 +151,69 @@ else:
         st.session_state.cart_items = []
         st.rerun()
 
-# تحديث لوحة التحكم لتدعم رفع ملفات الصور مباشرة من جهازك
-st.sidebar.write("---")
-with st.sidebar.expander("➕ إضافة منتج جديد (لوحة المدير)"):
-    new_name = st.text_input("اسم المنتج الجديد:")
-    new_price = st.number_input("السعر بالجنيه المصري (£):", min_value=1, value=15)
-    new_cat = st.selectbox("اختر الفئة التابع لها:", ["🏺 فخار", "🧵 منسوجات", "💍 إكسسوارات"])
-    new_desc = st.text_input("اكتب وصفاً مختصراً:")
+# 4. إدارة طريقة العرض: إما صفحة تفاصيل المنتج أو المعرض العام
+if st.session_state.selected_product is not None:
+    # ---- صفحة تفاصيل المنتج المستقلة ----
+    prod = st.session_state.selected_product
     
-    # ميزة رفع الملفات الجديدة
-    uploaded_file = st.file_uploader("ارفع صورة المنتج من حاسوبك:", type=["jpg", "png", "jpeg"])
+    st.title(prod['name'])
+    st.write("---")
     
-    if st.button("نشر وعرض المنتج بالمتجر ✨", use_container_width=True):
-        if new_name:
-            # التحقق من أن المستخدم رفع صورة، وإلا نضع صورة افتراضية مؤقتة
-            img_to_save = "https://picsum.photos"
-            if uploaded_file is not None:
-                img_to_save = Image.open(uploaded_file)
-                
-            new_prod = {
-                "name": new_name,
-                "price": int(new_price),
-                "cat": new_cat,
-                "desc": new_desc,
-                "image": img_to_save
-            }
-            st.session_state.custom_products.append(new_prod)
-            st.success("تم رفع الصورة وإضافة المنتج بنجاح!")
+    # تقسيم الصفحة إلى جزأين: اليمين للصورة واليسار للتفاصيل والألوان
+    col1, col2 = st.columns([1.2, 1])
+    
+    with col1:
+        st.image(prod['image'], use_container_width=True)
+        
+    with col2:
+        st.subheader("تفاصيل القطعة:")
+        st.write(prod['desc'])
+        st.write(f"### السعر: {prod['price']} ج.م")
+        
+        st.write("---")
+        # ميزة اختيار اللون المطلب للعميل
+        chosen_color = st.radio("الخيارات والألوان المتوفرة:", prod['colors'])
+        
+        st.write("")
+        # زر الإضافة الفوري داخل صفحة المنتج
+        if st.button("إضافة هذه القطعة إلى السلة 🛒", use_container_width=True):
+            st.session_state.cart_items.append({"name": prod['name'], "price": prod['price'], "color": chosen_color})
+            st.toast(f"تمت إضافة {prod['name']} باللون ({chosen_color}) إلى السلة! ✨")
             st.rerun()
-        else:
-            st.warning("يرجى كتابة اسم المنتج على الأقل لتتم الإضافة.")
+            
+        if st.button("🚫 إلغاء والعودة للمعرض", use_container_width=True):
+            st.session_state.selected_product = None
+            st.rerun()
 
-# 4. بناء الواجهة والمعرض الرئيسي للموقع حياً
-st.title("The Handmade Studio .")
-st.caption("قطع فريدة صُنعت يدوياً بكل حب وبساطة وبمظهر عصري متكامل.")
-st.write("---")
-
-filtered_products = [p for p in st.session_state.custom_products if category == "✨ الكل" or p["cat"] == category]
-
-if len(filtered_products) == 0:
-    st.info("لا توجد معروضات متوفرة في هذا القسم حالياً.")
 else:
-    cols = st.columns(2)
-    for index, prod in enumerate(filtered_products):
-        with cols[index % 2]:
-            # عرض الصورة سواء كانت رابط إنترنت أو ملف تم رفعه من الجهاز
-            if isinstance(prod['image'], str):
+    # ---- المعرض الرئيسي للمتجر ----
+    st.title("The Handmade Studio .")
+    st.caption("قطع فريدة صُنعت يدوياً بكل حب وبساطة وبمظهر عصري متكامل.")
+    st.write("---")
+    
+    filtered_products = [p for p in st.session_state.custom_products if category == "✨ الكل" or p["cat"] == category]
+    
+    if len(filtered_products) == 0:
+        st.info("لا توجد منتجات معروضة في هذا القسم حالياً.")
+    else:
+        cols = st.columns(2)
+        for index, prod in enumerate(filtered_products):
+            with cols[index % 2]:
+                # عرض الصورة
                 st.image(prod['image'], use_container_width=True)
-            else:
-                st.image(prod['image'], use_container_width=True)
-            
-            # عرض بطاقة السعر والوصف العصرية
-            st.markdown(f"""
-            <div class="product-card">
-                <h3>{prod['name']}</h3>
-                <p>{prod['desc']}</p>
-                <div class="product-price">{prod['price']}£</div>
-            </div>
-            """, unsafe_allow_html=True)
-            
-            # زر الإضافة الفوري للسلة لشراء المنتج
-            if st.button(f"إضافة للسلة", key=f"btn_{index}", use_container_width=True):
-                st.session_state.cart_items.append({"name": prod['name'], "price": prod['price']})
-                st.toast(f"تمت إضافة {prod['name']} إلى السلة! 🌾")
-                st.rerun()
+                
+                # بطاقة المنتج البسيطة بدون تكرار
+                st.markdown(f"""
+                <div class="product-card">
+                    <div class="product-title">{prod['name']}</div>
+                    <div class="product-price">{prod['price']} ج.م</div>
+                </div>
+                """, unsafe_allow_html=True)
+                
+                # زر الدخول والتفاصيل الذي ينقل العميل لصفحة الألوان
+                if st.button("عرض التفاصيل والألوان 🔍", key=f"view_{index}", use_container_width=True):
+                    st.session_state.selected_product = prod
+                    st.rerun()
 
 st.write("---")
 st.caption("© 2026 Modern Minimal Handmade Store. All rights reserved.")
