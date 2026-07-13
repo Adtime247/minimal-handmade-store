@@ -2,28 +2,28 @@ import streamlit as st
 import urllib.parse
 from PIL import Image
 
-# 1. واجهة تصميم فائقة العصرية ومخصصة للغة العربية والألوان الدافئة
+# 1. UI Customization with Modern Minimal Aesthetic (Beige & White)
 aesthetic_store_css = """
 <style>
-/* خلفية الموقع ناعمة ومريحة للعين */
+/* Smooth warm beige background */
 [data-testid="stAppViewContainer"] {
     background-color: #faf7f2 !important;
 }
 
-/* قائمة جانبية بيضاء نظيفة ومحددة بخط ناعم */
+/* Clean white sidebar with subtle border */
 [data-testid="stSidebar"] {
     background-color: #ffffff !important;
     border-right: 1px solid #efeae4;
 }
 
-/* خطوط متناسقة وألوان نصوص خشبية داكنة راقية */
+/* Modern fonts and refined dark wood text colors */
 h1, h2, h3, p, label, span {
     color: #4a3f35 !important;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-    text-align: right;
+    text-align: left;
 }
 
-/* بطاقات عرض المنتجات بتصميم انسيابي مذهل وبسيط في المعرض */
+/* Product cards in the main shop gallery */
 .product-card {
     background-color: #ffffff;
     padding: 20px;
@@ -50,7 +50,7 @@ h1, h2, h3, p, label, span {
     text-align: center;
 }
 
-/* تنسيق زر الواتساب الأخضر الخاص بالشراء */
+/* WhatsApp checkout button styling */
 .whatsapp-btn {
     display: block;
     width: 100%;
@@ -67,151 +67,183 @@ h1, h2, h3, p, label, span {
 """
 st.markdown(aesthetic_store_css, unsafe_allow_html=True)
 
-# 2. إدارة ذاكرة المنتجات وسلة التسوق والمنتج المختار الحالي
+# 2. Initialize State for Session Cart and Selected View
 if 'cart_items' not in st.session_state:
     st.session_state.cart_items = []
 
 if 'selected_product' not in st.session_state:
-    st.session_state.selected_product = None  # لمعرفة هل العميل داخل صفحة منتج أم في المعرض الرئيسي
+    st.session_state.selected_product = None  
 
 if 'custom_products' not in st.session_state:
-    # إعداد المنتجات الافتراضية مع إضافة ميزة الألوان المتعددة لكل منتج
+    # Fully English default database with multi-color setup
     st.session_state.custom_products = [
         {
             "id": 0,
-            "name": "مشبك شعر أنيق 🏷️", 
+            "name": "Elegant Hair Claw 🏷️", 
             "price": 20, 
-            "cat": "💍 إكسسوارات", 
-            "desc": "أضيفي لمسة من الأناقة لإطلالتك مع مشبك الشعر العصري بتصميم رخامي راقٍ. يتميز بثبات قوي، وخفة وزن، وراحة كاملة في الاستخدام اليومي أو المناسبات.",
-            "colors": ["رخامي بيج", "أخضر زيتوني", "أبيض صدف", "وردي ناعم"],
+            "cat": "💍 Accessories", 
+            "desc": "Add a touch of elegance to your look with this modern marble design hair claw. Features a strong grip, light weight, and complete comfort for daily wear or special occasions.",
+            "colors": ["Marble Beige", "Olive Green", "Pearl White", "Soft Pink"],
             "image": "https://picsum.photos"
         },
         {
             "id": 1,
-            "name": "كوب فخار مصقول 🏺", 
+            "name": "Polished Clay Mug 🏺", 
             "price": 150, 
-            "cat": "🏺 فخار", 
-            "desc": "طين طبيعي مصقول ومُشكل يدوياً بعناية فائقة. رفيق مثالي لمشروباتك الساخنة اليومية ويتحمل الحرارة العالية.",
-            "colors": ["بني ترابي", "رمادي مطفي", "أسود ملكي"],
+            "cat": "🏺 Pottery", 
+            "desc": "Natural polished clay, beautifully shaped by hand with ultimate care. A perfect companion for your daily hot beverages, durable and heat-resistant.",
+            "colors": ["Earthy Brown", "Matte Grey", "Royal Black"],
             "image": "https://picsum.photos"
         },
         {
-            "name": "حقيبة كتف قطنية 🧵", 
             "id": 2,
+            "name": "Cotton Shoulder Bag 🧵", 
             "price": 350, 
-            "cat": "🧵 منسوجات", 
-            "desc": "حقيبة يدوية منسوجة من خيوط القطن الطبيعي 100% بتصميم بوهيمي واسع وعصري يناسب جميع الطلعات.",
-            "colors": ["أوف وايت", "خردلي دافئ", "رمادي فاتح"],
+            "cat": "🧵 Textiles", 
+            "desc": "Handcrafted shoulder bag made from 100% natural cotton threads. Features a spacious, modern bohemian design suitable for all your outings.",
+            "colors": ["Off-White", "Warm Mustard", "Light Grey"],
             "image": "https://picsum.photos"
         }
     ]
 
-# 3. القائمة الجانبية (عربة التسوق والتحكم)
-st.sidebar.title("متجر الأناقة البسيطة")
-st.sidebar.caption("قطع فريدة صُنعت بكل حب وبساطة")
+# 3. Sidebar (Cart, Filter, and Manager Panel)
+st.sidebar.title("M i n i m a l  S h o p")
+st.sidebar.caption("Where Coding Meets Handmade Art")
 st.sidebar.write("---")
 
-# زر العودة للمعرض الرئيسي يظهر دائماً في العربة إذا كان المستخدم يتصفح منتجاً
+# Navigation button back to the main catalog
 if st.session_state.selected_product is not None:
-    if st.sidebar.button("⬅️ العودة للمعرض الرئيسي", use_container_width=True):
+    if st.sidebar.button("⬅️ Back to Shop Gallery", use_container_width=True):
         st.session_state.selected_product = None
         st.rerun()
 
-category = st.sidebar.selectbox("تصفح الفئات", ["✨ الكل", "🏺 فخار", "🧵 منسوجات", "💍 إكسسوارات"])
+category = st.sidebar.selectbox("Filter Categories", ["✨ All", "🏺 Pottery", "🧵 Textiles", "💍 Accessories"])
 
 st.sidebar.write("---")
-st.sidebar.subheader("عربة التسوق 🛒")
+st.sidebar.subheader("Shopping Cart 🛒")
 
 total_price = 0
 
 if len(st.session_state.cart_items) == 0:
-    st.sidebar.caption("العربة فارغة حالياً.")
+    st.sidebar.caption("Your cart is currently empty.")
 else:
     for item in st.session_state.cart_items:
-        st.sidebar.write(f"• {item['name']} ({item['color']}) - {item['price']} ج.م")
+        st.sidebar.write(f"• {item['name']} ({item['color']}) - {item['price']} EGP")
         total_price += item['price']
     
-    st.sidebar.write(f"### الإجمالي: {total_price} ج.م")
+    st.sidebar.write(f"### Total: {total_price} EGP")
     
-    # ضع رقم الواتساب الخاص بك هنا (مفتاح الدولة بدون أصفار بالبداية أو علامة +)
+    # Enter your country code and phone number here (no leading zeros or + sign)
     my_whatsapp_number = "201234567890" 
     
-    order_text = "مرحباً، أود طلب المنتجات التالية من المتجر:\n"
+    order_text = "Hello, I would like to order the following items from the store:\n"
     for item in st.session_state.cart_items:
-        order_text += f"- {item['name']} (اللون: {item['color']}) بسعر {item['price']} ج.م\n"
-    order_text += f"\nإجمالي الحساب بالكامل: {total_price} ج.م"
+        order_text += f"- {item['name']} (Color: {item['color']}) - {item['price']} EGP\n"
+    order_text += f"\nTotal Amount: {total_price} EGP"
     
     encoded_text = urllib.parse.quote(order_text)
     whatsapp_url = f"https://wa.me{my_whatsapp_number}?text={encoded_text}"
     
-    st.sidebar.markdown(f'<a href="{whatsapp_url}" target="_blank" class="whatsapp-btn">إتمام الطلب عبر واتساب 💬</a>', unsafe_allow_html=True)
+    st.sidebar.markdown(f'<a href="{whatsapp_url}" target="_blank" class="whatsapp-btn">Checkout via WhatsApp 💬</a>', unsafe_allow_html=True)
     st.sidebar.write("")
     
-    if st.sidebar.button("إفراغ السلة", use_container_width=True):
+    if st.sidebar.button("Clear Cart", use_container_width=True):
         st.session_state.cart_items = []
         st.rerun()
 
-# 4. إدارة طريقة العرض: إما صفحة تفاصيل المنتج أو المعرض العام
+# --- Manager Panel (English Version for adding new products) ---
+st.sidebar.write("---")
+with st.sidebar.expander("➕ Admin Panel (Add New Product)"):
+    new_name = st.text_input("Product Title:")
+    new_price = st.number_input("Price (EGP):", min_value=1, value=50)
+    new_cat = st.selectbox("Category:", ["💍 Accessories", "🏺 Pottery", "🧵 Textiles"])
+    new_desc = st.text_area("Short Description:")
+    
+    new_colors_input = st.text_input("Available Colors (separate with comma ,):", value="Black, White, Beige")
+    uploaded_file = st.file_uploader("Upload Product Image:", type=["jpg", "png", "jpeg"])
+    
+    if st.button("Publish Product to Shop ✨", use_container_width=True):
+        if new_name:
+            colors_list = [c.strip() for c in new_colors_input.split(",") if c.strip()]
+            if not colors_list:
+                colors_list = ["Default"]
+                
+            img_to_save = "https://picsum.photos"
+            if uploaded_file is not None:
+                img_to_save = Image.open(uploaded_file)
+                
+            new_id = len(st.session_state.custom_products)
+                
+            st.session_state.custom_products.append({
+                "id": new_id,
+                "name": new_name,
+                "price": int(new_price),
+                "cat": new_cat,
+                "desc": new_desc,
+                "colors": colors_list,
+                "image": img_to_save
+            })
+            st.success("New product published with options successfully!")
+            st.rerun()
+        else:
+            st.warning("Please enter at least the product title.")
+
+# 4. View Controller: Product Details Page OR Main Gallery Catalog
 if st.session_state.selected_product is not None:
-    # ---- صفحة تفاصيل المنتج المستقلة ----
-    prod = st.session_state.selected_product
+    # ---- Single Product Details Page View ----
+    prod_id = st.session_state.selected_product['id']
+    prod = next((p for p in st.session_state.custom_products if p['id'] == prod_id), st.session_state.selected_product)
     
     st.title(prod['name'])
     st.write("---")
     
-    # تقسيم الصفحة إلى جزأين: اليمين للصورة واليسار للتفاصيل والألوان
     col1, col2 = st.columns([1.2, 1])
     
     with col1:
         st.image(prod['image'], use_container_width=True)
         
     with col2:
-        st.subheader("تفاصيل القطعة:")
+        st.subheader("Product Description:")
         st.write(prod['desc'])
-        st.write(f"### السعر: {prod['price']} ج.م")
+        st.write(f"### Price: {prod['price']} EGP")
         
         st.write("---")
-        # ميزة اختيار اللون المطلب للعميل
-        chosen_color = st.radio("الخيارات والألوان المتوفرة:", prod['colors'])
+        chosen_color = st.radio("Available Colors/Options for this item:", prod['colors'])
         
         st.write("")
-        # زر الإضافة الفوري داخل صفحة المنتج
-        if st.button("إضافة هذه القطعة إلى السلة 🛒", use_container_width=True):
+        if st.button("Add to Cart 🛒", use_container_width=True):
             st.session_state.cart_items.append({"name": prod['name'], "price": prod['price'], "color": chosen_color})
-            st.toast(f"تمت إضافة {prod['name']} باللون ({chosen_color}) إلى السلة! ✨")
+            st.toast(f"Added {prod['name']} ({chosen_color}) to cart! ✨")
             st.rerun()
             
-        if st.button("🚫 إلغاء والعودة للمعرض", use_container_width=True):
+        if st.button("Cancel & Return to Shop", use_container_width=True):
             st.session_state.selected_product = None
             st.rerun()
 
 else:
-    # ---- المعرض الرئيسي للمتجر ----
+    # ---- Main Store Grid Catalog ----
     st.title("The Handmade Studio .")
-    st.caption("قطع فريدة صُنعت يدوياً بكل حب وبساطة وبمظهر عصري متكامل.")
+    st.caption("Unique handmade pieces, crafted with love, simplicity, and natural warm colors.")
     st.write("---")
     
-    filtered_products = [p for p in st.session_state.custom_products if category == "✨ الكل" or p["cat"] == category]
+    filtered_products = [p for p in st.session_state.custom_products if category == "✨ All" or p["cat"] == category]
     
     if len(filtered_products) == 0:
-        st.info("لا توجد منتجات معروضة في هذا القسم حالياً.")
+        st.info("No items available in this category at the moment.")
     else:
         cols = st.columns(2)
         for index, prod in enumerate(filtered_products):
             with cols[index % 2]:
-                # عرض الصورة
                 st.image(prod['image'], use_container_width=True)
                 
-                # بطاقة المنتج البسيطة بدون تكرار
                 st.markdown(f"""
                 <div class="product-card">
                     <div class="product-title">{prod['name']}</div>
-                    <div class="product-price">{prod['price']} ج.م</div>
+                    <div class="product-price">{prod['price']} EGP</div>
                 </div>
                 """, unsafe_allow_html=True)
                 
-                # زر الدخول والتفاصيل الذي ينقل العميل لصفحة الألوان
-                if st.button("عرض التفاصيل والألوان 🔍", key=f"view_{index}", use_container_width=True):
+                if st.button("View Options & Details 🔍", key=f"view_{prod['id']}", use_container_width=True):
                     st.session_state.selected_product = prod
                     st.rerun()
 
