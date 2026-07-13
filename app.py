@@ -147,7 +147,7 @@ with st.sidebar.expander("➕ Admin Panel (Add/Update Products)"):
     if admin_mode == "Create New Product":
         new_name = st.text_input("Product Title:")
         new_price = st.number_input("Price (EGP):", min_value=1, value=50)
-        new_cat = st.selectbox("Category:", ["💍 Accessories", "🏺 Pottery", "🧵 Textiles"])
+        new_cat = st.selectbox("Category:", ["👑 Headbands", "🎀 Hair Bows", "Hair Bands & Pins📎"])
         new_desc = st.text_area("Short Description:")
         new_colors_input = st.text_input("Available Colors (separate with comma ,):", value="Black, White")
         uploaded_file = st.file_uploader("Upload Product Image:", type=["jpg", "png", "jpeg"])
