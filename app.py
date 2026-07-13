@@ -70,25 +70,25 @@ if 'custom_products' not in st.session_state:
             "id": 0,
             "name": "Elegant Hair Claw 🏷️", 
             "price": 20, 
-            "cat": "💍 Accessories", 
+            "cat": "👑 Headbands", 
             "desc": "Add a touch of elegance to your look with this modern marble design hair claw. Features a strong grip, light weight, and complete comfort for daily wear or special occasions.",
             "colors": ["Marble Beige", "Olive Green", "Pearl White", "Soft Pink"],
             "image": "https://picsum.photos"
         },
         {
             "id": 1,
-            "name": "Polished Clay Mug 🏺", 
+            "name": "🎀 Hair Bows", 
             "price": 150, 
-            "cat": "🏺 Pottery", 
+            "cat": "🎀 Hair Bows", 
             "desc": "Natural polished clay, beautifully shaped by hand with ultimate care. A perfect companion for your daily hot beverages, durable and heat-resistant.",
             "colors": ["Earthy Brown", "Matte Grey", "Royal Black"],
             "image": "https://picsum.photos"
         },
         {
             "id": 2,
-            "name": "Cotton Shoulder Bag 🧵", 
+            "name": "Hair Bands & Pins", 
             "price": 350, 
-            "cat": "🧵 Textiles", 
+            "cat": "Hair Bands & Pins🖇", 
             "desc": "Handcrafted shoulder bag made from 100% natural cotton threads. Features a spacious, modern bohemian design suitable for all your outings.",
             "colors": ["Off-White", "Warm Mustard", "Light Grey"],
             "image": "https://picsum.photos"
