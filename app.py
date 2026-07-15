@@ -11,50 +11,17 @@ PRODUCTS_FILE = "products_data.json"
 
 # ==================== DATA PERSISTENCE ====================
 def load_products():
-    """Load products from JSON file"""
     if os.path.exists(PRODUCTS_FILE):
         try:
             with open(PRODUCTS_FILE, 'r', encoding='utf-8') as f:
-                data = json.load(f)
-                return data
+                return json.load(f)
         except:
-            return get_default_products()
-    return get_default_products()
+            return []
+    return []
 
 def save_products(products):
-    """Save products to JSON file"""
     with open(PRODUCTS_FILE, 'w', encoding='utf-8') as f:
         json.dump(products, f, ensure_ascii=False, indent=2)
-
-def get_default_products():
-    """Default product catalog with placeholder images"""
-    return [
-        {
-            "id": 0,
-            "name": "مشبك شعر أنيق",
-            "price": 20,
-            "cat": "مشابك شعر",
-            "desc": "مشبك شعر أنيق مصنوع من مواد عالية الجودة. تصميم عصري يناسب جميع المناسبات.",
-            "colors": [
-                {"name": "أحمر", "image": ""},
-                {"name": "أخضر", "image": ""},
-                {"name": "أسود", "image": ""},
-                {"name": "أبيض", "image": ""}
-            ]
-        },
-        {
-            "id": 1,
-            "name": "ربطة شعر فاخرة",
-            "price": 150,
-            "cat": "ربطات شعر",
-            "desc": "ربطة شعر مصنوعة يدوياً من خامات طبيعية. تصميم فريد وأنيق.",
-            "colors": [
-                {"name": "ذهبي", "image": ""},
-                {"name": "فضي", "image": ""},
-                {"name": "وردي", "image": ""}
-            ]
-        }
-    ]
 
 # ==================== INITIALIZE SESSION STATE ====================
 if 'cart_items' not in st.session_state:
@@ -69,10 +36,12 @@ if 'selected_color_index' not in st.session_state:
 if 'products' not in st.session_state:
     st.session_state.products = load_products()
 
+if 'temp_colors' not in st.session_state:
+    st.session_state.temp_colors = []
+
 # ==================== CSS STYLES ====================
 st.markdown("""
 <style>
-/* Reset and Base */
 [data-testid="stAppViewContainer"] {
     background-color: #faf7f2 !important;
 }
@@ -80,14 +49,10 @@ st.markdown("""
     background-color: #ffffff !important;
     border-right: 1px solid #efeae4;
 }
-
-/* Typography */
 h1, h2, h3, p, label, span, div {
     color: #2d2a24 !important;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
 }
-
-/* Header */
 .store-header {
     text-align: center;
     padding: 30px 0 15px 0;
@@ -113,8 +78,6 @@ h1, h2, h3, p, label, span, div {
     letter-spacing: 2px;
     margin-top: 8px;
 }
-
-/* Product Card */
 .product-card {
     background: #ffffff;
     border-radius: 20px;
@@ -128,7 +91,6 @@ h1, h2, h3, p, label, span, div {
     transform: translateY(-4px);
     box-shadow: 0 12px 40px rgba(45,42,36,0.08);
 }
-
 .product-image-wrapper {
     overflow: hidden;
     background: #f8f5f0;
@@ -142,12 +104,7 @@ h1, h2, h3, p, label, span, div {
     width: 100%;
     height: 100%;
     object-fit: contain;
-    transition: transform 0.4s ease;
 }
-.product-card:hover .product-image-wrapper img {
-    transform: scale(1.03);
-}
-
 .product-info {
     padding: 18px 20px 20px;
 }
@@ -188,20 +145,6 @@ h1, h2, h3, p, label, span, div {
     height: 100%;
     object-fit: cover;
 }
-.no-image-placeholder {
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    border: 2px solid #f0ebe5;
-    background: #e8e0d8;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 10px;
-    color: #999;
-}
-
-/* Product Detail */
 .detail-main-image {
     border-radius: 20px;
     overflow: hidden;
@@ -214,32 +157,6 @@ h1, h2, h3, p, label, span, div {
     width: 100%;
     height: 100%;
     object-fit: contain;
-}
-.detail-thumbnails {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-}
-.detail-thumb {
-    width: 70px;
-    height: 70px;
-    border-radius: 12px;
-    overflow: hidden;
-    border: 2px solid #f0ebe5;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-.detail-thumb:hover {
-    border-color: #b58d63;
-}
-.detail-thumb.active {
-    border-color: #b58d63;
-    border-width: 2.5px;
-}
-.detail-thumb img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
 }
 .detail-title {
     font-size: 2em;
@@ -257,8 +174,6 @@ h1, h2, h3, p, label, span, div {
     line-height: 1.8;
     font-size: 0.95em;
 }
-
-/* Color option cards in detail */
 .color-option-card {
     padding: 12px;
     border: 2px solid #f0ebe5;
@@ -290,8 +205,6 @@ h1, h2, h3, p, label, span, div {
     height: 100%;
     object-fit: cover;
 }
-
-/* Buttons */
 .whatsapp-btn {
     display: block;
     width: 100%;
@@ -307,8 +220,6 @@ h1, h2, h3, p, label, span, div {
 .whatsapp-btn:hover {
     background: #20b85a;
 }
-
-/* Footer */
 .footer {
     text-align: center;
     padding: 40px 0 20px 0;
@@ -327,8 +238,6 @@ h1, h2, h3, p, label, span, div {
     background: #e0d6cc;
     margin: 16px auto;
 }
-
-/* Streamlit Overrides */
 .stButton > button {
     width: 100% !important;
     border-radius: 12px !important;
@@ -337,24 +246,6 @@ h1, h2, h3, p, label, span, div {
 }
 </style>
 """, unsafe_allow_html=True)
-
-# ==================== HELPER FUNCTIONS ====================
-def display_image(image_data, width=200, height=200):
-    """Display image from base64 or URL"""
-    if not image_data:
-        return None
-    if image_data.startswith('data:image'):
-        return image_data
-    return image_data
-
-def get_color_image(product, color_index):
-    """Get image for a specific color"""
-    colors = product.get('colors', [])
-    if colors and color_index < len(colors):
-        img = colors[color_index].get('image', '')
-        if img:
-            return img
-    return None
 
 # ==================== SIDEBAR ====================
 st.sidebar.markdown("""
@@ -366,54 +257,40 @@ st.sidebar.markdown("""
 st.sidebar.write("---")
 
 # Navigation
-page = st.sidebar.radio(
-    "Navigate",
-    ["🏠 Shop", "📖 About"],
-    index=0
-)
+page = st.sidebar.radio("Navigate", ["🏠 Shop", "📖 About"], index=0)
 
 st.sidebar.write("---")
 
 # Cart
 st.sidebar.subheader("Your Cart")
-st.sidebar.write("")
-
 total_price = 0
 if len(st.session_state.cart_items) == 0:
     st.sidebar.caption("Your cart is empty")
 else:
     for item in st.session_state.cart_items:
-        st.sidebar.markdown(f"""
-        <div style="padding: 8px 0; border-bottom: 1px solid #f5f0eb;">
-            <div style="font-weight: 500; font-size: 0.9em;">{item['name']}</div>
-            <div style="font-size: 0.8em; color: #b5a89a;">{item['color']} · {item['price']} EGP</div>
-        </div>
-        """, unsafe_allow_html=True)
+        st.sidebar.write(f"• {item['name']} ({item['color']}) - {item['price']} EGP")
         total_price += item['price']
-    
-    st.sidebar.markdown(f"### Total: {total_price} EGP")
+    st.sidebar.write(f"### Total: {total_price} EGP")
     
     my_whatsapp_number = "201234567890"
     order_text = "Hello Vitta Team,\n\nI would like to order:\n"
     for item in st.session_state.cart_items:
         order_text += f"• {item['name']} ({item['color']}) - {item['price']} EGP\n"
     order_text += f"\nTotal: {total_price} EGP"
-    
     encoded_text = urllib.parse.quote(order_text)
     whatsapp_url = f"https://wa.me/{my_whatsapp_number}?text={encoded_text}"
     
     st.sidebar.markdown(f'<a href="{whatsapp_url}" target="_blank" class="whatsapp-btn">Checkout on WhatsApp</a>', unsafe_allow_html=True)
-    st.sidebar.write("")
-    
     if st.sidebar.button("Clear Cart", use_container_width=True):
         st.session_state.cart_items = []
         st.rerun()
 
-# Admin Panel - IMPROVED
+# ==================== ADMIN PANEL ====================
 st.sidebar.write("---")
 with st.sidebar.expander("⚙️ إدارة المنتجات", expanded=False):
     admin_mode = st.radio("اختر الإجراء:", ["➕ منتج جديد", "🎨 إضافة لون", "✏️ تعديل منتج"])
     
+    # ====== ADD NEW PRODUCT ======
     if admin_mode == "➕ منتج جديد":
         st.markdown("### معلومات المنتج")
         new_name = st.text_input("اسم المنتج")
@@ -421,33 +298,56 @@ with st.sidebar.expander("⚙️ إدارة المنتجات", expanded=False):
         new_cat = st.selectbox("التصنيف", ["مشابك شعر", "ربطات شعر", "إكسسوارات"])
         new_desc = st.text_area("وصف المنتج")
         
-        st.markdown("### إضافة لون وصورة")
-        color_name = st.text_input("اسم اللون", value="أحمر")
-        uploaded_file = st.file_uploader("صورة المنتج بهذا اللون", type=["jpg", "png", "jpeg"])
+        st.markdown("### 🎨 إضافة الألوان والصور")
+        col1, col2 = st.columns([1, 1])
+        with col1:
+            color_name = st.text_input("اسم اللون", value="أحمر", key="color_name_new")
+        with col2:
+            uploaded_file = st.file_uploader("صورة المنتج بهذا اللون", type=["jpg", "png", "jpeg"], key="color_img_new")
         
-        if st.button("إضافة المنتج", use_container_width=True):
-            if new_name and uploaded_file:
-                # Convert image to base64
+        if st.button("➕ إضافة هذا اللون للقائمة", use_container_width=True):
+            if color_name and uploaded_file:
                 img = Image.open(uploaded_file)
                 buffered = BytesIO()
                 img.save(buffered, format="JPEG", quality=80)
                 img_str = base64.b64encode(buffered.getvalue()).decode()
-                
+                st.session_state.temp_colors.append({
+                    "name": color_name,
+                    "image": f"data:image/jpeg;base64,{img_str}"
+                })
+                st.success(f"✅ تم إضافة لون {color_name}")
+                st.rerun()
+        
+        if st.session_state.temp_colors:
+            st.markdown("**الألوان المضافة:**")
+            for idx, color in enumerate(st.session_state.temp_colors):
+                col1, col2, col3 = st.columns([1, 4, 1])
+                with col1:
+                    st.image(color['image'], width=40)
+                with col2:
+                    st.write(color['name'])
+                with col3:
+                    if st.button("🗑️", key=f"remove_{idx}"):
+                        st.session_state.temp_colors.pop(idx)
+                        st.rerun()
+        
+        if st.button("📦 نشر المنتج", use_container_width=True, type="primary"):
+            if new_name and st.session_state.temp_colors:
                 new_product = {
                     "id": len(st.session_state.products),
                     "name": new_name,
                     "price": int(new_price),
                     "cat": new_cat,
                     "desc": new_desc,
-                    "colors": [{"name": color_name, "image": f"data:image/jpeg;base64,{img_str}"}]
+                    "colors": st.session_state.temp_colors.copy()
                 }
                 st.session_state.products.append(new_product)
                 save_products(st.session_state.products)
-                st.success(f"✅ تم إضافة {new_name} بنجاح!")
+                st.session_state.temp_colors = []
+                st.success(f"✅ تم إضافة {new_name}!")
                 st.rerun()
-            else:
-                st.error("❌ يرجى إدخال اسم المنتج ورفع صورة")
     
+    # ====== ADD COLOR TO EXISTING ======
     elif admin_mode == "🎨 إضافة لون":
         existing_names = [p['name'] for p in st.session_state.products]
         if existing_names:
@@ -470,13 +370,12 @@ with st.sidebar.expander("⚙️ إدارة المنتجات", expanded=False):
                             })
                             break
                     save_products(st.session_state.products)
-                    st.success(f"✅ تم إضافة لون {new_color_name} بنجاح!")
+                    st.success(f"✅ تم إضافة لون {new_color_name}!")
                     st.rerun()
-                else:
-                    st.error("❌ يرجى إدخال اسم اللون ورفع صورة")
         else:
-            st.info("لا يوجد منتجات بعد. أضف منتجاً أولاً!")
+            st.info("لا يوجد منتجات بعد")
     
+    # ====== EDIT PRODUCT ======
     elif admin_mode == "✏️ تعديل منتج":
         existing_names = [p['name'] for p in st.session_state.products]
         if existing_names:
@@ -484,27 +383,88 @@ with st.sidebar.expander("⚙️ إدارة المنتجات", expanded=False):
             
             # Find product
             product_to_edit = None
-            for p in st.session_state.products:
+            product_index = -1
+            for idx, p in enumerate(st.session_state.products):
                 if p['name'] == selected:
                     product_to_edit = p
+                    product_index = idx
                     break
             
             if product_to_edit:
+                st.markdown("### معلومات المنتج")
                 new_name = st.text_input("اسم المنتج", value=product_to_edit['name'])
-                new_price = st.number_input("السعر", value=product_to_edit['price'])
+                new_price = st.number_input("السعر (EGP)", value=product_to_edit['price'])
                 new_cat = st.text_input("التصنيف", value=product_to_edit['cat'])
                 new_desc = st.text_area("الوصف", value=product_to_edit['desc'])
                 
-                if st.button("تحديث المنتج", use_container_width=True):
+                st.markdown("### 🎨 تعديل الألوان والصور")
+                
+                # Edit each color
+                updated_colors = []
+                for idx, color in enumerate(product_to_edit['colors']):
+                    st.markdown(f"**اللون {idx + 1}:** {color['name']}")
+                    
+                    col1, col2 = st.columns([1, 2])
+                    with col1:
+                        if color.get('image'):
+                            st.image(color['image'], width=80)
+                        else:
+                            st.markdown("لا توجد صورة")
+                    
+                    with col2:
+                        new_color_name = st.text_input(
+                            f"اسم اللون",
+                            value=color['name'],
+                            key=f"edit_name_{idx}"
+                        )
+                        new_image = st.file_uploader(
+                            f"رفع صورة جديدة (اختياري)",
+                            type=["jpg", "png", "jpeg"],
+                            key=f"edit_img_{idx}"
+                        )
+                        delete_color = st.checkbox(
+                            f"🗑️ حذف هذا اللون",
+                            key=f"delete_{idx}"
+                        )
+                    
+                    if not delete_color:
+                        updated_color = color.copy()
+                        updated_color['name'] = new_color_name
+                        if new_image is not None:
+                            img = Image.open(new_image)
+                            buffered = BytesIO()
+                            img.save(buffered, format="JPEG", quality=80)
+                            img_str = base64.b64encode(buffered.getvalue()).decode()
+                            updated_color['image'] = f"data:image/jpeg;base64,{img_str}"
+                        updated_colors.append(updated_color)
+                    
+                    st.markdown("---")
+                
+                # Update button
+                if st.button("💾 حفظ التغييرات", use_container_width=True, type="primary"):
                     product_to_edit['name'] = new_name
                     product_to_edit['price'] = int(new_price)
                     product_to_edit['cat'] = new_cat
                     product_to_edit['desc'] = new_desc
+                    product_to_edit['colors'] = updated_colors
+                    
                     save_products(st.session_state.products)
-                    st.success("✅ تم تحديث المنتج!")
+                    st.success(f"✅ تم تحديث {new_name}!")
                     st.rerun()
+                
+                # Delete product
+                st.markdown("---")
+                if st.button("🗑️ حذف المنتج بالكامل", use_container_width=True):
+                    confirm = st.checkbox("تأكيد الحذف", key="confirm_delete")
+                    if confirm:
+                        st.session_state.products.pop(product_index)
+                        save_products(st.session_state.products)
+                        st.success("✅ تم حذف المنتج!")
+                        st.rerun()
+                    else:
+                        st.warning("⚠️ يرجى تأكيد الحذف")
         else:
-            st.info("لا يوجد منتجات بعد. أضف منتجاً أولاً!")
+            st.info("لا يوجد منتجات بعد")
 
 # ==================== MAIN CONTENT ====================
 if page == "📖 About":
@@ -522,7 +482,6 @@ if page == "📖 About":
     """, unsafe_allow_html=True)
 
 else:  # Shop Page
-    # Store Header
     st.markdown("""
     <div class="store-header">
         <h1 class="store-title">VITTA</h1>
@@ -531,18 +490,18 @@ else:  # Shop Page
     </div>
     """, unsafe_allow_html=True)
     
-    # Check if we're viewing a product detail
+    # Product Detail View
     if st.session_state.selected_product is not None:
         product = st.session_state.selected_product
         colors = product.get('colors', [])
         
         if colors:
-            current_color_idx = st.session_state.selected_color_index
-            if current_color_idx >= len(colors):
-                current_color_idx = 0
+            current_idx = st.session_state.selected_color_index
+            if current_idx >= len(colors):
+                current_idx = 0
                 st.session_state.selected_color_index = 0
             
-            current_color = colors[current_color_idx]
+            current_color = colors[current_idx]
             
             st.markdown("---")
             st.markdown(f'<div class="detail-title">{product["name"]}</div>', unsafe_allow_html=True)
@@ -550,93 +509,67 @@ else:  # Shop Page
             col1, col2 = st.columns([1.2, 1])
             
             with col1:
-                # Main image
                 img_src = current_color.get('image', '')
                 if img_src:
-                    st.markdown(f'<div class="detail-main-image"><img src="{img_src}" alt="{product["name"]}"></div>', unsafe_allow_html=True)
-                else:
-                    st.markdown(f'<div class="detail-main-image" style="display:flex;align-items:center;justify-content:center;color:#999;">لا توجد صورة</div>', unsafe_allow_html=True)
+                    st.markdown(f'<div class="detail-main-image"><img src="{img_src}"></div>', unsafe_allow_html=True)
                 
-                # Color options
                 if len(colors) > 1:
-                    st.write("")
                     st.markdown("**الألوان المتاحة:**")
-                    
-                    # Display color options as cards
                     color_cols = st.columns(min(len(colors), 4))
                     for idx, color in enumerate(colors):
                         with color_cols[idx % len(color_cols)]:
-                            is_selected = idx == current_color_idx
+                            is_selected = idx == current_idx
                             border_class = "selected" if is_selected else ""
                             img = color.get('image', '')
-                            
-                            if img:
-                                st.markdown(f"""
-                                <div class="color-option-card {border_class}" style="cursor: pointer;">
-                                    <div class="color-option-swatch"><img src="{img}" alt="{color['name']}"></div>
-                                    <div style="font-size: 0.8em; color: #6a5f55;">{color['name']}</div>
-                                </div>
-                                """, unsafe_allow_html=True)
-                            else:
-                                st.markdown(f"""
-                                <div class="color-option-card {border_class}" style="cursor: pointer;">
-                                    <div class="color-option-swatch" style="background: #e8e0d8;"></div>
-                                    <div style="font-size: 0.8em; color: #6a5f55;">{color['name']}</div>
-                                </div>
-                                """, unsafe_allow_html=True)
-                            
-                            if st.button(f"اختر", key=f"color_btn_{idx}"):
+                            st.markdown(f"""
+                            <div class="color-option-card {border_class}">
+                                <div class="color-option-swatch"><img src="{img}"></div>
+                                <div style="font-size: 0.8em;">{color['name']}</div>
+                            </div>
+                            """, unsafe_allow_html=True)
+                            if st.button(f"اختر", key=f"detail_color_{idx}"):
                                 st.session_state.selected_color_index = idx
                                 st.rerun()
             
             with col2:
                 st.markdown(f'<div class="detail-price">{product["price"]} EGP</div>', unsafe_allow_html=True)
                 st.markdown(f'<div class="detail-description">{product["desc"]}</div>', unsafe_allow_html=True)
-                
-                st.write("")
-                selected_color_name = current_color["name"]
-                st.markdown(f"**اللون المختار:** {selected_color_name}")
+                st.markdown(f"**اللون المختار:** {current_color['name']}")
                 
                 if st.button("🛒 أضف إلى السلة", use_container_width=True):
                     st.session_state.cart_items.append({
                         "name": product['name'],
                         "price": product['price'],
-                        "color": selected_color_name
+                        "color": current_color['name']
                     })
-                    st.toast(f"✨ تم إضافة {product['name']} - {selected_color_name} إلى السلة!")
+                    st.toast(f"✨ تم إضافة {product['name']}!")
                     st.rerun()
                 
                 if st.button("↩️ العودة للمتجر", use_container_width=True):
                     st.session_state.selected_product = None
-                    st.session_state.selected_color_index = 0
                     st.rerun()
+    
+    # Product Grid
     else:
-        # Product Grid
-        filtered_products = st.session_state.products
-        
-        if len(filtered_products) == 0:
-            st.info("لا توجد منتجات. استخدم لوحة الإدارة لإضافة منتجات!")
+        if len(st.session_state.products) == 0:
+            st.info("🛍️ لا توجد منتجات. استخدم لوحة الإدارة لإضافة منتجات!")
         else:
             cols = st.columns(2)
-            for index, product in enumerate(filtered_products):
+            for index, product in enumerate(st.session_state.products):
                 with cols[index % 2]:
-                    # Get first color image for card
                     first_color = product['colors'][0] if product['colors'] else None
                     img_src = first_color.get('image', '') if first_color else ''
                     
-                    # Create color thumbnails
                     color_thumbs = ""
                     for color in product['colors'][:4]:
                         img = color.get('image', '')
                         if img:
-                            color_thumbs += f'<div class="color-thumb"><img src="{img}" alt="{color["name"]}"></div>'
-                        else:
-                            color_thumbs += f'<div class="no-image-placeholder">?</div>'
+                            color_thumbs += f'<div class="color-thumb"><img src="{img}"></div>'
                     
                     st.markdown(f"""
                     <div class="product-card">
                         <div class="product-image-wrapper">
-                            {f'<img src="{img_src}" alt="{product["name"]}">' if img_src else '<span style="color:#999;">لا توجد صورة</span>'}
+                            {f'<img src="{img_src}">' if img_src else 'لا توجد صورة'}
                         </div>
                         <div class="product-info">
                             <div class="product-category">{product['cat']}</div>
