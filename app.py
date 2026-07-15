@@ -5,7 +5,6 @@ import json
 import os
 import base64
 from io import BytesIO
-import random
 
 # ==================== CONFIGURATION ====================
 PRODUCTS_FILE = "products_data.json"
@@ -16,20 +15,28 @@ def load_products():
     if os.path.exists(PRODUCTS_FILE):
         try:
             with open(PRODUCTS_FILE, 'r', encoding='utf-8') as f:
-                return json.load(f)
+                data = json.load(f)
+                # Ensure each product has the required fields
+                for p in data:
+                    if 'colors' not in p:
+                        p['colors'] = [{"name": "Default", "image": "https://picsum.photos/seed/default/400/400"}]
+                return data
         except:
             return get_default_products()
     return get_default_products()
 
 def save_products(products):
     """Save products to JSON file"""
-    # Convert PIL images to base64 for storage
+    # Create a clean version without large image data
     products_to_save = []
     for p in products:
         p_copy = p.copy()
-        if 'image_data' in p_copy:
-            # Image already stored as base64
-            pass
+        # Keep only the image URLs or small data
+        if 'colors' in p_copy:
+            for color in p_copy['colors']:
+                if 'image' in color and isinstance(color['image'], str) and len(color['image']) > 1000:
+                    # If it's a large base64 string, keep it but it's already in the data
+                    pass
         products_to_save.append(p_copy)
     
     with open(PRODUCTS_FILE, 'w', encoding='utf-8') as f:
@@ -76,19 +83,6 @@ def get_default_products():
                 {"name": "Light Grey", "image": "https://picsum.photos/seed/band_grey/400/400"},
                 {"name": "Sage Green", "image": "https://picsum.photos/seed/band_sage/400/400"}
             ]
-        },
-        {
-            "id": 3,
-            "name": "Classic Headband",
-            "price": 95,
-            "cat": "Headbands",
-            "desc": "Timeless design with a modern twist. Made from sustainable materials with a comfortable fit for extended wear.",
-            "colors": [
-                {"name": "Black", "image": "https://picsum.photos/seed/head_black/400/400"},
-                {"name": "Ivory", "image": "https://picsum.photos/seed/head_ivory/400/400"},
-                {"name": "Navy", "image": "https://picsum.photos/seed/head_navy/400/400"},
-                {"name": "Burgundy", "image": "https://picsum.photos/seed/head_burgundy/400/400"}
-            ]
         }
     ]
 
@@ -106,7 +100,7 @@ if 'products' not in st.session_state:
     st.session_state.products = load_products()
 
 # ==================== CSS STYLES ====================
-aesthetic_store_css = """
+st.markdown("""
 <style>
 /* Reset and Base */
 [data-testid="stAppViewContainer"] {
@@ -129,7 +123,7 @@ h1, h2, h3, p, label, span, div {
     padding: 30px 0 15px 0;
 }
 .store-title {
-    font-size: 3em;
+    font-size: 2.8em;
     font-weight: 300;
     letter-spacing: 8px;
     color: #2d2a24;
@@ -150,34 +144,6 @@ h1, h2, h3, p, label, span, div {
     margin-top: 8px;
 }
 
-/* Navigation Tabs */
-.nav-tabs {
-    display: flex;
-    gap: 30px;
-    justify-content: center;
-    padding: 20px 0 10px 0;
-    border-bottom: 1px solid #efeae4;
-    margin-bottom: 30px;
-}
-.nav-tab {
-    color: #b5a89a;
-    text-decoration: none;
-    font-size: 0.85em;
-    letter-spacing: 2px;
-    padding: 8px 0;
-    border-bottom: 2px solid transparent;
-    transition: all 0.3s ease;
-    cursor: pointer;
-}
-.nav-tab:hover {
-    color: #2d2a24;
-    border-bottom-color: #b58d63;
-}
-.nav-tab.active {
-    color: #2d2a24;
-    border-bottom-color: #b58d63;
-}
-
 /* Product Card */
 .product-card {
     background: #ffffff;
@@ -186,6 +152,7 @@ h1, h2, h3, p, label, span, div {
     box-shadow: 0 2px 20px rgba(0,0,0,0.04);
     transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     border: 1px solid #f0ebe5;
+    margin-bottom: 20px;
 }
 .product-card:hover {
     transform: translateY(-4px);
@@ -193,7 +160,6 @@ h1, h2, h3, p, label, span, div {
 }
 
 .product-image-wrapper {
-    position: relative;
     overflow: hidden;
     background: #f8f5f0;
     aspect-ratio: 1/1;
@@ -244,12 +210,7 @@ h1, h2, h3, p, label, span, div {
     height: 30px;
     border-radius: 50%;
     border: 2px solid #f0ebe5;
-    cursor: pointer;
     overflow: hidden;
-    transition: border-color 0.2s ease;
-}
-.color-thumb:hover {
-    border-color: #b58d63;
 }
 .color-thumb img {
     width: 100%;
@@ -263,16 +224,12 @@ h1, h2, h3, p, label, span, div {
     margin: 0 auto;
     padding: 20px;
 }
-.detail-gallery {
-    display: flex;
-    gap: 20px;
-}
 .detail-main-image {
-    flex: 1;
     border-radius: 20px;
     overflow: hidden;
     background: #f8f5f0;
     aspect-ratio: 1/1;
+    margin-bottom: 15px;
 }
 .detail-main-image img {
     width: 100%;
@@ -281,13 +238,12 @@ h1, h2, h3, p, label, span, div {
 }
 .detail-thumbnails {
     display: flex;
-    flex-direction: column;
     gap: 10px;
-    width: 80px;
+    flex-wrap: wrap;
 }
 .detail-thumb {
-    width: 80px;
-    height: 80px;
+    width: 70px;
+    height: 70px;
     border-radius: 12px;
     overflow: hidden;
     border: 2px solid #f0ebe5;
@@ -325,22 +281,6 @@ h1, h2, h3, p, label, span, div {
 }
 
 /* Buttons */
-.btn-primary {
-    width: 100%;
-    padding: 14px;
-    background: #2d2a24;
-    color: white !important;
-    border: none;
-    border-radius: 12px;
-    font-weight: 500;
-    font-size: 0.95em;
-    transition: all 0.2s ease;
-    cursor: pointer;
-}
-.btn-primary:hover {
-    background: #4a3f35;
-}
-
 .whatsapp-btn {
     display: block;
     width: 100%;
@@ -408,20 +348,15 @@ h1, h2, h3, p, label, span, div {
     gap: 10px !important;
 }
 </style>
-"""
-st.markdown(aesthetic_store_css, unsafe_allow_html=True)
+""", unsafe_allow_html=True)
 
 # ==================== HELPER FUNCTIONS ====================
-def get_color_image(product, color_name):
+def get_color_image(product, color_index):
     """Get image URL for a specific color"""
-    for color in product.get('colors', []):
-        if color['name'] == color_name:
-            return color.get('image', 'https://picsum.photos/seed/default/400/400')
+    colors = product.get('colors', [])
+    if colors and color_index < len(colors):
+        return colors[color_index].get('image', 'https://picsum.photos/seed/default/400/400')
     return 'https://picsum.photos/seed/default/400/400'
-
-def get_all_colors(product):
-    """Get list of color names"""
-    return [c['name'] for c in product.get('colors', [])]
 
 # ==================== SIDEBAR ====================
 st.sidebar.markdown("""
@@ -492,12 +427,15 @@ with st.sidebar.expander("⚙️ Studio Management"):
         uploaded_file = st.file_uploader("Upload Image for this color", type=["jpg", "png", "jpeg"])
         
         if st.button("Add Product", use_container_width=True):
-            if new_name and uploaded_file:
-                # Save image to base64
-                img = Image.open(uploaded_file)
-                buffered = BytesIO()
-                img.save(buffered, format="JPEG")
-                img_str = base64.b64encode(buffered.getvalue()).decode()
+            if new_name:
+                img_url = "https://picsum.photos/seed/" + new_name.replace(" ", "") + "/400/400"
+                if uploaded_file is not None:
+                    # Save as base64
+                    img = Image.open(uploaded_file)
+                    buffered = BytesIO()
+                    img.save(buffered, format="JPEG", quality=70)
+                    img_str = base64.b64encode(buffered.getvalue()).decode()
+                    img_url = f"data:image/jpeg;base64,{img_str}"
                 
                 new_product = {
                     "id": len(st.session_state.products),
@@ -505,7 +443,7 @@ with st.sidebar.expander("⚙️ Studio Management"):
                     "price": int(new_price),
                     "cat": new_cat,
                     "desc": new_desc,
-                    "colors": [{"name": color_name, "image": f"data:image/jpeg;base64,{img_str}"}]
+                    "colors": [{"name": color_name, "image": img_url}]
                 }
                 st.session_state.products.append(new_product)
                 save_products(st.session_state.products)
@@ -514,27 +452,33 @@ with st.sidebar.expander("⚙️ Studio Management"):
     
     elif admin_mode == "Add Color Variant":
         existing_names = [p['name'] for p in st.session_state.products]
-        selected = st.selectbox("Select Product", existing_names)
-        new_color_name = st.text_input("Color Name", value="Gold")
-        uploaded_file = st.file_uploader("Upload Image for this color", type=["jpg", "png", "jpeg"])
-        
-        if st.button("Add Color Variant", use_container_width=True):
-            if selected and new_color_name and uploaded_file:
-                img = Image.open(uploaded_file)
-                buffered = BytesIO()
-                img.save(buffered, format="JPEG")
-                img_str = base64.b64encode(buffered.getvalue()).decode()
-                
-                for p in st.session_state.products:
-                    if p['name'] == selected:
-                        p['colors'].append({
-                            "name": new_color_name,
-                            "image": f"data:image/jpeg;base64,{img_str}"
-                        })
-                        break
-                save_products(st.session_state.products)
-                st.success("🎨 Color variant added!")
-                st.rerun()
+        if existing_names:
+            selected = st.selectbox("Select Product", existing_names)
+            new_color_name = st.text_input("Color Name", value="Gold")
+            uploaded_file = st.file_uploader("Upload Image for this color", type=["jpg", "png", "jpeg"])
+            
+            if st.button("Add Color Variant", use_container_width=True):
+                if selected and new_color_name:
+                    img_url = "https://picsum.photos/seed/" + new_color_name.replace(" ", "") + "/400/400"
+                    if uploaded_file is not None:
+                        img = Image.open(uploaded_file)
+                        buffered = BytesIO()
+                        img.save(buffered, format="JPEG", quality=70)
+                        img_str = base64.b64encode(buffered.getvalue()).decode()
+                        img_url = f"data:image/jpeg;base64,{img_str}"
+                    
+                    for p in st.session_state.products:
+                        if p['name'] == selected:
+                            p['colors'].append({
+                                "name": new_color_name,
+                                "image": img_url
+                            })
+                            break
+                    save_products(st.session_state.products)
+                    st.success("🎨 Color variant added!")
+                    st.rerun()
+        else:
+            st.info("No products yet. Create one first!")
 
 # ==================== MAIN CONTENT ====================
 if page == "📖 About":
@@ -593,15 +537,16 @@ elif page == "✨ Collections":
     """, unsafe_allow_html=True)
     
     # Display categories as collection cards
-    categories = ["Headbands", "Hair Bows", "Hair Bands"]
-    icons = ["👑", "🎀", "📎"]
+    categories = list(set([p['cat'] for p in st.session_state.products]))
+    icons = ["👑", "🎀", "📎", "✨", "💫", "🌟"]
     
-    cols = st.columns(3)
-    for idx, (cat, icon) in enumerate(zip(categories, icons)):
-        with cols[idx]:
+    cols = st.columns(min(len(categories), 3))
+    for idx, cat in enumerate(categories):
+        with cols[idx % len(cols)]:
             count = len([p for p in st.session_state.products if p['cat'] == cat])
+            icon = icons[idx % len(icons)]
             st.markdown(f"""
-            <div style="background: #ffffff; padding: 30px; border-radius: 20px; border: 1px solid #f0ebe5; text-align: center;">
+            <div style="background: #ffffff; padding: 30px; border-radius: 20px; border: 1px solid #f0ebe5; text-align: center; margin-bottom: 15px;">
                 <div style="font-size: 3em;">{icon}</div>
                 <h3 style="margin: 10px 0 5px 0;">{cat}</h3>
                 <p style="color: #b5a89a; font-size: 0.9em;">{count} items</p>
@@ -619,48 +564,12 @@ else:  # Shop Page
     """, unsafe_allow_html=True)
     
     # Category Filter
-    categories = ["All"] + list(set([p['cat'] for p in st.session_state.products]))
+    categories = ["All"] + sorted(list(set([p['cat'] for p in st.session_state.products])))
     selected_category = st.selectbox("Filter by Collection", categories, index=0)
     
     st.write("")
     
-    # Product Grid
-    filtered_products = [p for p in st.session_state.products if selected_category == "All" or p['cat'] == selected_category]
-    
-    if len(filtered_products) == 0:
-        st.info("No items in this collection")
-    else:
-        cols = st.columns(2)
-        for index, product in enumerate(filtered_products):
-            with cols[index % 2]:
-                # Get first color image for card
-                first_color = product['colors'][0] if product['colors'] else {"name": "Default", "image": "https://picsum.photos/seed/default/400/400"}
-                
-                # Create color thumbnails
-                color_thumbs = ""
-                for color in product['colors'][:4]:
-                    color_thumbs += f'<div class="color-thumb"><img src="{color["image"]}" alt="{color["name"]}"></div>'
-                
-                st.markdown(f"""
-                <div class="product-card">
-                    <div class="product-image-wrapper">
-                        <img src="{first_color['image']}" alt="{product['name']}">
-                    </div>
-                    <div class="product-info">
-                        <div class="product-category">{product['cat']}</div>
-                        <div class="product-name">{product['name']}</div>
-                        <div class="color-thumbnails">{color_thumbs}</div>
-                        <div class="product-price">{product['price']} EGP</div>
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
-                
-                if st.button("View Details →", key=f"view_{product['id']}", use_container_width=True):
-                    st.session_state.selected_product = product
-                    st.session_state.selected_color_index = 0
-                    st.rerun()
-    
-    # Product Detail View
+    # Check if we're viewing a product detail
     if st.session_state.selected_product is not None:
         product = st.session_state.selected_product
         colors = product.get('colors', [])
@@ -669,6 +578,7 @@ else:  # Shop Page
             current_color_idx = st.session_state.selected_color_index
             if current_color_idx >= len(colors):
                 current_color_idx = 0
+                st.session_state.selected_color_index = 0
             
             current_color = colors[current_color_idx]
             
@@ -682,17 +592,17 @@ else:  # Shop Page
                 st.markdown(f'<div class="detail-main-image"><img src="{current_color["image"]}" alt="{product["name"]}"></div>', unsafe_allow_html=True)
                 
                 # Color thumbnails
-                st.write("")
-                st.markdown("**Available Colors:**")
-                thumb_cols = st.columns(min(len(colors), 6))
-                for idx, color in enumerate(colors):
-                    with thumb_cols[idx % len(thumb_cols)]:
-                        active = "active" if idx == current_color_idx else ""
-                        if st.button(f"", key=f"color_{idx}", use_container_width=True):
-                            st.session_state.selected_color_index = idx
-                            st.rerun()
-                        st.markdown(f'<div class="detail-thumb {active}"><img src="{color["image"]}" alt="{color["name"]}"></div>', unsafe_allow_html=True)
-                        st.caption(color['name'])
+                if len(colors) > 1:
+                    st.write("")
+                    st.markdown("**Available Colors:**")
+                    thumb_cols = st.columns(min(len(colors), 4))
+                    for idx, color in enumerate(colors):
+                        with thumb_cols[idx % len(thumb_cols)]:
+                            active_class = "active" if idx == current_color_idx else ""
+                            st.markdown(f'<div class="detail-thumb {active_class}" onclick="location.reload()"><img src="{color["image"]}" alt="{color["name"]}"></div>', unsafe_allow_html=True)
+                            if st.button(color['name'], key=f"color_btn_{idx}"):
+                                st.session_state.selected_color_index = idx
+                                st.rerun()
             
             with col2:
                 st.markdown(f'<div class="detail-price">{product["price"]} EGP</div>', unsafe_allow_html=True)
@@ -713,7 +623,44 @@ else:  # Shop Page
                 
                 if st.button("Continue Shopping", use_container_width=True):
                     st.session_state.selected_product = None
+                    st.session_state.selected_color_index = 0
                     st.rerun()
+    else:
+        # Product Grid
+        filtered_products = [p for p in st.session_state.products if selected_category == "All" or p['cat'] == selected_category]
+        
+        if len(filtered_products) == 0:
+            st.info("No items in this collection")
+        else:
+            cols = st.columns(2)
+            for index, product in enumerate(filtered_products):
+                with cols[index % 2]:
+                    # Get first color image for card
+                    first_color = product['colors'][0] if product['colors'] else {"name": "Default", "image": "https://picsum.photos/seed/default/400/400"}
+                    
+                    # Create color thumbnails
+                    color_thumbs = ""
+                    for color in product['colors'][:4]:
+                        color_thumbs += f'<div class="color-thumb"><img src="{color["image"]}" alt="{color["name"]}"></div>'
+                    
+                    st.markdown(f"""
+                    <div class="product-card">
+                        <div class="product-image-wrapper">
+                            <img src="{first_color['image']}" alt="{product['name']}">
+                        </div>
+                        <div class="product-info">
+                            <div class="product-category">{product['cat']}</div>
+                            <div class="product-name">{product['name']}</div>
+                            <div class="color-thumbnails">{color_thumbs}</div>
+                            <div class="product-price">{product['price']} EGP</div>
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
+                    
+                    if st.button("View Details →", key=f"view_{product['id']}", use_container_width=True):
+                        st.session_state.selected_product = product
+                        st.session_state.selected_color_index = 0
+                        st.rerun()
     
     # Footer
     st.markdown("""
