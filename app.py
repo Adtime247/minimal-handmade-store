@@ -23,6 +23,42 @@ def save_products(products):
     with open(PRODUCTS_FILE, 'w', encoding='utf-8') as f:
         json.dump(products, f, ensure_ascii=False, indent=2)
 
+# ==================== HELPER FUNCTION FOR IMAGE ====================
+def process_image(uploaded_file):
+    """Convert uploaded image to base64 JPEG"""
+    if uploaded_file is None:
+        return None
+    
+    try:
+        # Open image
+        img = Image.open(uploaded_file)
+        
+        # Convert to RGB if necessary (for PNG with alpha)
+        if img.mode in ('RGBA', 'LA', 'P'):
+            # Create white background
+            background = Image.new('RGB', img.size, (255, 255, 255))
+            if img.mode == 'P':
+                img = img.convert('RGBA')
+            background.paste(img, mask=img.split()[-1] if img.mode == 'RGBA' else None)
+            img = background
+        elif img.mode != 'RGB':
+            img = img.convert('RGB')
+        
+        # Resize if too large (max 800x800)
+        max_size = 800
+        if img.width > max_size or img.height > max_size:
+            img.thumbnail((max_size, max_size), Image.Resampling.LANCZOS)
+        
+        # Save as JPEG with compression
+        buffered = BytesIO()
+        img.save(buffered, format="JPEG", quality=85, optimize=True)
+        img_str = base64.b64encode(buffered.getvalue()).decode()
+        return f"data:image/jpeg;base64,{img_str}"
+    
+    except Exception as e:
+        st.error(f"خطأ في معالجة الصورة: {e}")
+        return None
+
 # ==================== INITIALIZE SESSION STATE ====================
 if 'cart_items' not in st.session_state:
     st.session_state.cart_items = []
@@ -303,20 +339,22 @@ with st.sidebar.expander("⚙️ إدارة المنتجات", expanded=False):
         with col1:
             color_name = st.text_input("اسم اللون", value="أحمر", key="color_name_new")
         with col2:
-            uploaded_file = st.file_uploader("صورة المنتج بهذا اللون", type=["jpg", "png", "jpeg"], key="color_img_new")
+            uploaded_file = st.file_uploader("صورة المنتج بهذا اللون", type=["jpg", "png", "jpeg", "webp"], key="color_img_new")
         
         if st.button("➕ إضافة هذا اللون للقائمة", use_container_width=True):
             if color_name and uploaded_file:
-                img = Image.open(uploaded_file)
-                buffered = BytesIO()
-                img.save(buffered, format="JPEG", quality=80)
-                img_str = base64.b64encode(buffered.getvalue()).decode()
-                st.session_state.temp_colors.append({
-                    "name": color_name,
-                    "image": f"data:image/jpeg;base64,{img_str}"
-                })
-                st.success(f"✅ تم إضافة لون {color_name}")
-                st.rerun()
+                img_data = process_image(uploaded_file)
+                if img_data:
+                    st.session_state.temp_colors.append({
+                        "name": color_name,
+                        "image": img_data
+                    })
+                    st.success(f"✅ تم إضافة لون {color_name}")
+                    st.rerun()
+                else:
+                    st.error("❌ فشل في معالجة الصورة")
+            else:
+                st.error("❌ يرجى إدخال اسم اللون ورفع صورة")
         
         if st.session_state.temp_colors:
             st.markdown("**الألوان المضافة:**")
@@ -346,6 +384,11 @@ with st.sidebar.expander("⚙️ إدارة المنتجات", expanded=False):
                 st.session_state.temp_colors = []
                 st.success(f"✅ تم إضافة {new_name}!")
                 st.rerun()
+            else:
+                if not new_name:
+                    st.error("❌ يرجى إدخال اسم المنتج")
+                if not st.session_state.temp_colors:
+                    st.error("❌ يرجى إضافة لون واحد على الأقل")
     
     # ====== ADD COLOR TO EXISTING ======
     elif admin_mode == "🎨 إضافة لون":
@@ -353,25 +396,26 @@ with st.sidebar.expander("⚙️ إدارة المنتجات", expanded=False):
         if existing_names:
             selected = st.selectbox("اختر المنتج", existing_names)
             new_color_name = st.text_input("اسم اللون الجديد", value="ذهبي")
-            uploaded_file = st.file_uploader("صورة المنتج بهذا اللون", type=["jpg", "png", "jpeg"])
+            uploaded_file = st.file_uploader("صورة المنتج بهذا اللون", type=["jpg", "png", "jpeg", "webp"])
             
             if st.button("إضافة اللون", use_container_width=True):
                 if selected and new_color_name and uploaded_file:
-                    img = Image.open(uploaded_file)
-                    buffered = BytesIO()
-                    img.save(buffered, format="JPEG", quality=80)
-                    img_str = base64.b64encode(buffered.getvalue()).decode()
-                    
-                    for p in st.session_state.products:
-                        if p['name'] == selected:
-                            p['colors'].append({
-                                "name": new_color_name,
-                                "image": f"data:image/jpeg;base64,{img_str}"
-                            })
-                            break
-                    save_products(st.session_state.products)
-                    st.success(f"✅ تم إضافة لون {new_color_name}!")
-                    st.rerun()
+                    img_data = process_image(uploaded_file)
+                    if img_data:
+                        for p in st.session_state.products:
+                            if p['name'] == selected:
+                                p['colors'].append({
+                                    "name": new_color_name,
+                                    "image": img_data
+                                })
+                                break
+                        save_products(st.session_state.products)
+                        st.success(f"✅ تم إضافة لون {new_color_name}!")
+                        st.rerun()
+                    else:
+                        st.error("❌ فشل في معالجة الصورة")
+                else:
+                    st.error("❌ يرجى إدخال اسم اللون ورفع صورة")
         else:
             st.info("لا يوجد منتجات بعد")
     
@@ -419,7 +463,7 @@ with st.sidebar.expander("⚙️ إدارة المنتجات", expanded=False):
                         )
                         new_image = st.file_uploader(
                             f"رفع صورة جديدة (اختياري)",
-                            type=["jpg", "png", "jpeg"],
+                            type=["jpg", "png", "jpeg", "webp"],
                             key=f"edit_img_{idx}"
                         )
                         delete_color = st.checkbox(
@@ -431,11 +475,9 @@ with st.sidebar.expander("⚙️ إدارة المنتجات", expanded=False):
                         updated_color = color.copy()
                         updated_color['name'] = new_color_name
                         if new_image is not None:
-                            img = Image.open(new_image)
-                            buffered = BytesIO()
-                            img.save(buffered, format="JPEG", quality=80)
-                            img_str = base64.b64encode(buffered.getvalue()).decode()
-                            updated_color['image'] = f"data:image/jpeg;base64,{img_str}"
+                            img_data = process_image(new_image)
+                            if img_data:
+                                updated_color['image'] = img_data
                         updated_colors.append(updated_color)
                     
                     st.markdown("---")
