@@ -16,10 +16,6 @@ def load_products():
         try:
             with open(PRODUCTS_FILE, 'r', encoding='utf-8') as f:
                 data = json.load(f)
-                # Ensure each product has the required fields
-                for p in data:
-                    if 'colors' not in p:
-                        p['colors'] = [{"name": "Default", "image": "https://picsum.photos/seed/default/400/400"}]
                 return data
         except:
             return get_default_products()
@@ -27,61 +23,35 @@ def load_products():
 
 def save_products(products):
     """Save products to JSON file"""
-    # Create a clean version without large image data
-    products_to_save = []
-    for p in products:
-        p_copy = p.copy()
-        # Keep only the image URLs or small data
-        if 'colors' in p_copy:
-            for color in p_copy['colors']:
-                if 'image' in color and isinstance(color['image'], str) and len(color['image']) > 1000:
-                    # If it's a large base64 string, keep it but it's already in the data
-                    pass
-        products_to_save.append(p_copy)
-    
     with open(PRODUCTS_FILE, 'w', encoding='utf-8') as f:
-        json.dump(products_to_save, f, ensure_ascii=False, indent=2)
+        json.dump(products, f, ensure_ascii=False, indent=2)
 
 def get_default_products():
-    """Default product catalog with multiple color images"""
+    """Default product catalog with placeholder images"""
     return [
         {
             "id": 0,
-            "name": "Elegant Hair Claw",
+            "name": "مشبك شعر أنيق",
             "price": 20,
-            "cat": "Headbands",
-            "desc": "A sophisticated hair accessory crafted from premium materials. Features a secure grip mechanism and lightweight design for all-day comfort.",
+            "cat": "مشابك شعر",
+            "desc": "مشبك شعر أنيق مصنوع من مواد عالية الجودة. تصميم عصري يناسب جميع المناسبات.",
             "colors": [
-                {"name": "Marble Beige", "image": "https://picsum.photos/seed/claw_beige/400/400"},
-                {"name": "Olive Green", "image": "https://picsum.photos/seed/claw_green/400/400"},
-                {"name": "Pearl White", "image": "https://picsum.photos/seed/claw_white/400/400"},
-                {"name": "Soft Pink", "image": "https://picsum.photos/seed/claw_pink/400/400"}
+                {"name": "أحمر", "image": ""},
+                {"name": "أخضر", "image": ""},
+                {"name": "أسود", "image": ""},
+                {"name": "أبيض", "image": ""}
             ]
         },
         {
             "id": 1,
-            "name": "Luxury Hair Bow",
+            "name": "ربطة شعر فاخرة",
             "price": 150,
-            "cat": "Hair Bows",
-            "desc": "Handcrafted from natural clay with a polished finish. Each piece is uniquely shaped and fired for durability and heat resistance.",
+            "cat": "ربطات شعر",
+            "desc": "ربطة شعر مصنوعة يدوياً من خامات طبيعية. تصميم فريد وأنيق.",
             "colors": [
-                {"name": "Earthy Brown", "image": "https://picsum.photos/seed/bow_brown/400/400"},
-                {"name": "Matte Grey", "image": "https://picsum.photos/seed/bow_grey/400/400"},
-                {"name": "Royal Black", "image": "https://picsum.photos/seed/bow_black/400/400"},
-                {"name": "Terracotta", "image": "https://picsum.photos/seed/bow_terra/400/400"}
-            ]
-        },
-        {
-            "id": 2,
-            "name": "Artisan Hair Band",
-            "price": 350,
-            "cat": "Hair Bands",
-            "desc": "Bohemian-inspired accessory woven from natural cotton threads. Versatile design suitable for casual and formal occasions.",
-            "colors": [
-                {"name": "Off-White", "image": "https://picsum.photos/seed/band_white/400/400"},
-                {"name": "Warm Mustard", "image": "https://picsum.photos/seed/band_mustard/400/400"},
-                {"name": "Light Grey", "image": "https://picsum.photos/seed/band_grey/400/400"},
-                {"name": "Sage Green", "image": "https://picsum.photos/seed/band_sage/400/400"}
+                {"name": "ذهبي", "image": ""},
+                {"name": "فضي", "image": ""},
+                {"name": "وردي", "image": ""}
             ]
         }
     ]
@@ -166,11 +136,12 @@ h1, h2, h3, p, label, span, div {
     display: flex;
     align-items: center;
     justify-content: center;
+    padding: 10px;
 }
 .product-image-wrapper img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain;
     transition: transform 0.4s ease;
 }
 .product-card:hover .product-image-wrapper img {
@@ -217,24 +188,32 @@ h1, h2, h3, p, label, span, div {
     height: 100%;
     object-fit: cover;
 }
+.no-image-placeholder {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: 2px solid #f0ebe5;
+    background: #e8e0d8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    color: #999;
+}
 
 /* Product Detail */
-.detail-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 20px;
-}
 .detail-main-image {
     border-radius: 20px;
     overflow: hidden;
     background: #f8f5f0;
     aspect-ratio: 1/1;
     margin-bottom: 15px;
+    padding: 20px;
 }
 .detail-main-image img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain;
 }
 .detail-thumbnails {
     display: flex;
@@ -262,7 +241,6 @@ h1, h2, h3, p, label, span, div {
     height: 100%;
     object-fit: cover;
 }
-
 .detail-title {
     font-size: 2em;
     font-weight: 300;
@@ -278,6 +256,39 @@ h1, h2, h3, p, label, span, div {
     color: #6a5f55;
     line-height: 1.8;
     font-size: 0.95em;
+}
+
+/* Color option cards in detail */
+.color-option-card {
+    padding: 12px;
+    border: 2px solid #f0ebe5;
+    border-radius: 12px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: #faf8f5;
+}
+.color-option-card:hover {
+    border-color: #b58d63;
+    background: #ffffff;
+}
+.color-option-card.selected {
+    border-color: #b58d63;
+    background: #ffffff;
+    box-shadow: 0 2px 10px rgba(181, 141, 99, 0.1);
+}
+.color-option-swatch {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    margin: 0 auto 8px;
+    border: 1px solid #e0d6cc;
+    overflow: hidden;
+}
+.color-option-swatch img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
 /* Buttons */
@@ -317,26 +328,6 @@ h1, h2, h3, p, label, span, div {
     margin: 16px auto;
 }
 
-/* About Page */
-.about-section {
-    background: #ffffff;
-    padding: 40px;
-    border-radius: 20px;
-    border: 1px solid #f0ebe5;
-    margin: 20px 0;
-}
-.about-title {
-    font-size: 1.8em;
-    font-weight: 300;
-    letter-spacing: 2px;
-    margin-bottom: 20px;
-}
-.about-text {
-    color: #6a5f55;
-    line-height: 2;
-    font-size: 1em;
-}
-
 /* Streamlit Overrides */
 .stButton > button {
     width: 100% !important;
@@ -344,19 +335,26 @@ h1, h2, h3, p, label, span, div {
     font-weight: 500 !important;
     padding: 12px !important;
 }
-.stRadio > div {
-    gap: 10px !important;
-}
 </style>
 """, unsafe_allow_html=True)
 
 # ==================== HELPER FUNCTIONS ====================
+def display_image(image_data, width=200, height=200):
+    """Display image from base64 or URL"""
+    if not image_data:
+        return None
+    if image_data.startswith('data:image'):
+        return image_data
+    return image_data
+
 def get_color_image(product, color_index):
-    """Get image URL for a specific color"""
+    """Get image for a specific color"""
     colors = product.get('colors', [])
     if colors and color_index < len(colors):
-        return colors[color_index].get('image', 'https://picsum.photos/seed/default/400/400')
-    return 'https://picsum.photos/seed/default/400/400'
+        img = colors[color_index].get('image', '')
+        if img:
+            return img
+    return None
 
 # ==================== SIDEBAR ====================
 st.sidebar.markdown("""
@@ -370,7 +368,7 @@ st.sidebar.write("---")
 # Navigation
 page = st.sidebar.radio(
     "Navigate",
-    ["🏠 Shop", "📖 About", "✨ Collections"],
+    ["🏠 Shop", "📖 About"],
     index=0
 )
 
@@ -411,31 +409,29 @@ else:
         st.session_state.cart_items = []
         st.rerun()
 
-# Admin Panel
+# Admin Panel - IMPROVED
 st.sidebar.write("---")
-with st.sidebar.expander("⚙️ Studio Management"):
-    admin_mode = st.radio("Action", ["New Product", "Add Color Variant"])
+with st.sidebar.expander("⚙️ إدارة المنتجات", expanded=False):
+    admin_mode = st.radio("اختر الإجراء:", ["➕ منتج جديد", "🎨 إضافة لون", "✏️ تعديل منتج"])
     
-    if admin_mode == "New Product":
-        new_name = st.text_input("Product Name")
-        new_price = st.number_input("Price (EGP)", min_value=1, value=50)
-        new_cat = st.selectbox("Category", ["Headbands", "Hair Bows", "Hair Bands"])
-        new_desc = st.text_area("Description")
+    if admin_mode == "➕ منتج جديد":
+        st.markdown("### معلومات المنتج")
+        new_name = st.text_input("اسم المنتج")
+        new_price = st.number_input("السعر (EGP)", min_value=1, value=50)
+        new_cat = st.selectbox("التصنيف", ["مشابك شعر", "ربطات شعر", "إكسسوارات"])
+        new_desc = st.text_area("وصف المنتج")
         
-        st.markdown("**Color Variants**")
-        color_name = st.text_input("Color Name", value="Black")
-        uploaded_file = st.file_uploader("Upload Image for this color", type=["jpg", "png", "jpeg"])
+        st.markdown("### إضافة لون وصورة")
+        color_name = st.text_input("اسم اللون", value="أحمر")
+        uploaded_file = st.file_uploader("صورة المنتج بهذا اللون", type=["jpg", "png", "jpeg"])
         
-        if st.button("Add Product", use_container_width=True):
-            if new_name:
-                img_url = "https://picsum.photos/seed/" + new_name.replace(" ", "") + "/400/400"
-                if uploaded_file is not None:
-                    # Save as base64
-                    img = Image.open(uploaded_file)
-                    buffered = BytesIO()
-                    img.save(buffered, format="JPEG", quality=70)
-                    img_str = base64.b64encode(buffered.getvalue()).decode()
-                    img_url = f"data:image/jpeg;base64,{img_str}"
+        if st.button("إضافة المنتج", use_container_width=True):
+            if new_name and uploaded_file:
+                # Convert image to base64
+                img = Image.open(uploaded_file)
+                buffered = BytesIO()
+                img.save(buffered, format="JPEG", quality=80)
+                img_str = base64.b64encode(buffered.getvalue()).decode()
                 
                 new_product = {
                     "id": len(st.session_state.products),
@@ -443,115 +439,87 @@ with st.sidebar.expander("⚙️ Studio Management"):
                     "price": int(new_price),
                     "cat": new_cat,
                     "desc": new_desc,
-                    "colors": [{"name": color_name, "image": img_url}]
+                    "colors": [{"name": color_name, "image": f"data:image/jpeg;base64,{img_str}"}]
                 }
                 st.session_state.products.append(new_product)
                 save_products(st.session_state.products)
-                st.success("✨ Product added!")
+                st.success(f"✅ تم إضافة {new_name} بنجاح!")
                 st.rerun()
+            else:
+                st.error("❌ يرجى إدخال اسم المنتج ورفع صورة")
     
-    elif admin_mode == "Add Color Variant":
+    elif admin_mode == "🎨 إضافة لون":
         existing_names = [p['name'] for p in st.session_state.products]
         if existing_names:
-            selected = st.selectbox("Select Product", existing_names)
-            new_color_name = st.text_input("Color Name", value="Gold")
-            uploaded_file = st.file_uploader("Upload Image for this color", type=["jpg", "png", "jpeg"])
+            selected = st.selectbox("اختر المنتج", existing_names)
+            new_color_name = st.text_input("اسم اللون الجديد", value="ذهبي")
+            uploaded_file = st.file_uploader("صورة المنتج بهذا اللون", type=["jpg", "png", "jpeg"])
             
-            if st.button("Add Color Variant", use_container_width=True):
-                if selected and new_color_name:
-                    img_url = "https://picsum.photos/seed/" + new_color_name.replace(" ", "") + "/400/400"
-                    if uploaded_file is not None:
-                        img = Image.open(uploaded_file)
-                        buffered = BytesIO()
-                        img.save(buffered, format="JPEG", quality=70)
-                        img_str = base64.b64encode(buffered.getvalue()).decode()
-                        img_url = f"data:image/jpeg;base64,{img_str}"
+            if st.button("إضافة اللون", use_container_width=True):
+                if selected and new_color_name and uploaded_file:
+                    img = Image.open(uploaded_file)
+                    buffered = BytesIO()
+                    img.save(buffered, format="JPEG", quality=80)
+                    img_str = base64.b64encode(buffered.getvalue()).decode()
                     
                     for p in st.session_state.products:
                         if p['name'] == selected:
                             p['colors'].append({
                                 "name": new_color_name,
-                                "image": img_url
+                                "image": f"data:image/jpeg;base64,{img_str}"
                             })
                             break
                     save_products(st.session_state.products)
-                    st.success("🎨 Color variant added!")
+                    st.success(f"✅ تم إضافة لون {new_color_name} بنجاح!")
+                    st.rerun()
+                else:
+                    st.error("❌ يرجى إدخال اسم اللون ورفع صورة")
+        else:
+            st.info("لا يوجد منتجات بعد. أضف منتجاً أولاً!")
+    
+    elif admin_mode == "✏️ تعديل منتج":
+        existing_names = [p['name'] for p in st.session_state.products]
+        if existing_names:
+            selected = st.selectbox("اختر المنتج للتعديل", existing_names)
+            
+            # Find product
+            product_to_edit = None
+            for p in st.session_state.products:
+                if p['name'] == selected:
+                    product_to_edit = p
+                    break
+            
+            if product_to_edit:
+                new_name = st.text_input("اسم المنتج", value=product_to_edit['name'])
+                new_price = st.number_input("السعر", value=product_to_edit['price'])
+                new_cat = st.text_input("التصنيف", value=product_to_edit['cat'])
+                new_desc = st.text_area("الوصف", value=product_to_edit['desc'])
+                
+                if st.button("تحديث المنتج", use_container_width=True):
+                    product_to_edit['name'] = new_name
+                    product_to_edit['price'] = int(new_price)
+                    product_to_edit['cat'] = new_cat
+                    product_to_edit['desc'] = new_desc
+                    save_products(st.session_state.products)
+                    st.success("✅ تم تحديث المنتج!")
                     st.rerun()
         else:
-            st.info("No products yet. Create one first!")
+            st.info("لا يوجد منتجات بعد. أضف منتجاً أولاً!")
 
 # ==================== MAIN CONTENT ====================
 if page == "📖 About":
     st.markdown("""
-    <div class="about-section">
-        <div class="about-title">About VITTA</div>
-        <div class="about-text">
-            <p><strong>VITTA</strong> is a curated accessories brand born from a passion for timeless design and exceptional craftsmanship.</p>
-            <p>We believe that everyday accessories should be both beautiful and functional. Each piece in our collection is thoughtfully designed to elevate your daily style while providing lasting quality.</p>
-            <p style="margin-top: 20px;">Our philosophy is simple:</p>
-            <ul style="color: #6a5f55; line-height: 2; padding-left: 20px;">
-                <li><strong>Quality over quantity</strong> — We focus on creating pieces that stand the test of time</li>
-                <li><strong>Thoughtful design</strong> — Every detail is considered, from materials to functionality</li>
-                <li><strong>Sustainable practice</strong> — We work with responsible suppliers and minimize waste</li>
-                <li><strong>Customer experience</strong> — Your satisfaction is our priority, from browsing to delivery</li>
-            </ul>
-            <p style="margin-top: 20px;">Join us in celebrating the beauty of everyday elegance.</p>
-            <p style="font-weight: 300; letter-spacing: 1px; margin-top: 10px; color: #b58d63;">— The VITTA Team</p>
-        </div>
+    <div style="background: #ffffff; padding: 40px; border-radius: 20px; border: 1px solid #f0ebe5; margin: 20px 0;">
+        <h2 style="font-weight: 300; letter-spacing: 2px;">About VITTA</h2>
+        <p style="color: #6a5f55; line-height: 2; font-size: 1em;">
+            <strong>VITTA</strong> is a curated accessories brand born from a passion for timeless design and exceptional craftsmanship.
+        </p>
+        <p style="color: #6a5f55; line-height: 2; font-size: 1em;">
+            We believe that everyday accessories should be both beautiful and functional. Each piece in our collection is thoughtfully designed to elevate your daily style while providing lasting quality.
+        </p>
+        <p style="font-weight: 300; letter-spacing: 1px; margin-top: 10px; color: #b58d63;">— The VITTA Team</p>
     </div>
     """, unsafe_allow_html=True)
-    
-    # Mission Section
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        st.markdown("""
-        <div style="text-align: center; padding: 20px; background: #ffffff; border-radius: 16px; border: 1px solid #f0ebe5;">
-            <div style="font-size: 2.5em;">🎯</div>
-            <h3>Our Mission</h3>
-            <p style="color: #6a5f55; font-size: 0.9em; line-height: 1.6;">To create accessories that enhance your personal style while maintaining exceptional quality and comfort.</p>
-        </div>
-        """, unsafe_allow_html=True)
-    with col2:
-        st.markdown("""
-        <div style="text-align: center; padding: 20px; background: #ffffff; border-radius: 16px; border: 1px solid #f0ebe5;">
-            <div style="font-size: 2.5em;">✨</div>
-            <h3>Our Values</h3>
-            <p style="color: #6a5f55; font-size: 0.9em; line-height: 1.6;">Craftsmanship, sustainability, and thoughtful design are at the heart of everything we create.</p>
-        </div>
-        """, unsafe_allow_html=True)
-    with col3:
-        st.markdown("""
-        <div style="text-align: center; padding: 20px; background: #ffffff; border-radius: 16px; border: 1px solid #f0ebe5;">
-            <div style="font-size: 2.5em;">🌿</div>
-            <h3>Our Promise</h3>
-            <p style="color: #6a5f55; font-size: 0.9em; line-height: 1.6;">Every piece is made with care, using sustainable materials and ethical production practices.</p>
-        </div>
-        """, unsafe_allow_html=True)
-
-elif page == "✨ Collections":
-    st.markdown("""
-    <div style="text-align: center; padding: 30px 0;">
-        <h2 style="font-weight: 300; letter-spacing: 3px;">Our Collections</h2>
-        <p style="color: #b5a89a; font-weight: 300; letter-spacing: 1px;">Curated with care for everyday elegance</p>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    # Display categories as collection cards
-    categories = list(set([p['cat'] for p in st.session_state.products]))
-    icons = ["👑", "🎀", "📎", "✨", "💫", "🌟"]
-    
-    cols = st.columns(min(len(categories), 3))
-    for idx, cat in enumerate(categories):
-        with cols[idx % len(cols)]:
-            count = len([p for p in st.session_state.products if p['cat'] == cat])
-            icon = icons[idx % len(icons)]
-            st.markdown(f"""
-            <div style="background: #ffffff; padding: 30px; border-radius: 20px; border: 1px solid #f0ebe5; text-align: center; margin-bottom: 15px;">
-                <div style="font-size: 3em;">{icon}</div>
-                <h3 style="margin: 10px 0 5px 0;">{cat}</h3>
-                <p style="color: #b5a89a; font-size: 0.9em;">{count} items</p>
-            </div>
-            """, unsafe_allow_html=True)
 
 else:  # Shop Page
     # Store Header
@@ -562,12 +530,6 @@ else:  # Shop Page
         <p class="store-tagline">Crafted with care for everyday elegance</p>
     </div>
     """, unsafe_allow_html=True)
-    
-    # Category Filter
-    categories = ["All"] + sorted(list(set([p['cat'] for p in st.session_state.products])))
-    selected_category = st.selectbox("Filter by Collection", categories, index=0)
-    
-    st.write("")
     
     # Check if we're viewing a product detail
     if st.session_state.selected_product is not None:
@@ -589,18 +551,41 @@ else:  # Shop Page
             
             with col1:
                 # Main image
-                st.markdown(f'<div class="detail-main-image"><img src="{current_color["image"]}" alt="{product["name"]}"></div>', unsafe_allow_html=True)
+                img_src = current_color.get('image', '')
+                if img_src:
+                    st.markdown(f'<div class="detail-main-image"><img src="{img_src}" alt="{product["name"]}"></div>', unsafe_allow_html=True)
+                else:
+                    st.markdown(f'<div class="detail-main-image" style="display:flex;align-items:center;justify-content:center;color:#999;">لا توجد صورة</div>', unsafe_allow_html=True)
                 
-                # Color thumbnails
+                # Color options
                 if len(colors) > 1:
                     st.write("")
-                    st.markdown("**Available Colors:**")
-                    thumb_cols = st.columns(min(len(colors), 4))
+                    st.markdown("**الألوان المتاحة:**")
+                    
+                    # Display color options as cards
+                    color_cols = st.columns(min(len(colors), 4))
                     for idx, color in enumerate(colors):
-                        with thumb_cols[idx % len(thumb_cols)]:
-                            active_class = "active" if idx == current_color_idx else ""
-                            st.markdown(f'<div class="detail-thumb {active_class}" onclick="location.reload()"><img src="{color["image"]}" alt="{color["name"]}"></div>', unsafe_allow_html=True)
-                            if st.button(color['name'], key=f"color_btn_{idx}"):
+                        with color_cols[idx % len(color_cols)]:
+                            is_selected = idx == current_color_idx
+                            border_class = "selected" if is_selected else ""
+                            img = color.get('image', '')
+                            
+                            if img:
+                                st.markdown(f"""
+                                <div class="color-option-card {border_class}" style="cursor: pointer;">
+                                    <div class="color-option-swatch"><img src="{img}" alt="{color['name']}"></div>
+                                    <div style="font-size: 0.8em; color: #6a5f55;">{color['name']}</div>
+                                </div>
+                                """, unsafe_allow_html=True)
+                            else:
+                                st.markdown(f"""
+                                <div class="color-option-card {border_class}" style="cursor: pointer;">
+                                    <div class="color-option-swatch" style="background: #e8e0d8;"></div>
+                                    <div style="font-size: 0.8em; color: #6a5f55;">{color['name']}</div>
+                                </div>
+                                """, unsafe_allow_html=True)
+                            
+                            if st.button(f"اختر", key=f"color_btn_{idx}"):
                                 st.session_state.selected_color_index = idx
                                 st.rerun()
             
@@ -610,43 +595,48 @@ else:  # Shop Page
                 
                 st.write("")
                 selected_color_name = current_color["name"]
-                st.markdown(f"**Selected Color:** {selected_color_name}")
+                st.markdown(f"**اللون المختار:** {selected_color_name}")
                 
-                if st.button("Add to Cart", use_container_width=True):
+                if st.button("🛒 أضف إلى السلة", use_container_width=True):
                     st.session_state.cart_items.append({
                         "name": product['name'],
                         "price": product['price'],
                         "color": selected_color_name
                     })
-                    st.toast(f"✨ Added {product['name']} in {selected_color_name}!")
+                    st.toast(f"✨ تم إضافة {product['name']} - {selected_color_name} إلى السلة!")
                     st.rerun()
                 
-                if st.button("Continue Shopping", use_container_width=True):
+                if st.button("↩️ العودة للمتجر", use_container_width=True):
                     st.session_state.selected_product = None
                     st.session_state.selected_color_index = 0
                     st.rerun()
     else:
         # Product Grid
-        filtered_products = [p for p in st.session_state.products if selected_category == "All" or p['cat'] == selected_category]
+        filtered_products = st.session_state.products
         
         if len(filtered_products) == 0:
-            st.info("No items in this collection")
+            st.info("لا توجد منتجات. استخدم لوحة الإدارة لإضافة منتجات!")
         else:
             cols = st.columns(2)
             for index, product in enumerate(filtered_products):
                 with cols[index % 2]:
                     # Get first color image for card
-                    first_color = product['colors'][0] if product['colors'] else {"name": "Default", "image": "https://picsum.photos/seed/default/400/400"}
+                    first_color = product['colors'][0] if product['colors'] else None
+                    img_src = first_color.get('image', '') if first_color else ''
                     
                     # Create color thumbnails
                     color_thumbs = ""
                     for color in product['colors'][:4]:
-                        color_thumbs += f'<div class="color-thumb"><img src="{color["image"]}" alt="{color["name"]}"></div>'
+                        img = color.get('image', '')
+                        if img:
+                            color_thumbs += f'<div class="color-thumb"><img src="{img}" alt="{color["name"]}"></div>'
+                        else:
+                            color_thumbs += f'<div class="no-image-placeholder">?</div>'
                     
                     st.markdown(f"""
                     <div class="product-card">
                         <div class="product-image-wrapper">
-                            <img src="{first_color['image']}" alt="{product['name']}">
+                            {f'<img src="{img_src}" alt="{product["name"]}">' if img_src else '<span style="color:#999;">لا توجد صورة</span>'}
                         </div>
                         <div class="product-info">
                             <div class="product-category">{product['cat']}</div>
@@ -657,7 +647,7 @@ else:  # Shop Page
                     </div>
                     """, unsafe_allow_html=True)
                     
-                    if st.button("View Details →", key=f"view_{product['id']}", use_container_width=True):
+                    if st.button("🔍 عرض التفاصيل", key=f"view_{product['id']}", use_container_width=True):
                         st.session_state.selected_product = product
                         st.session_state.selected_color_index = 0
                         st.rerun()
